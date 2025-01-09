@@ -20,15 +20,15 @@ class File(BaseFileSection):
     def data(self, value: Dict[str, Any]):
         if not isinstance(value, dict):
             raise ValueError("Data must be a dictionary")
-        self._data = {"content": value.get("content", "")}
+        self._data = {"content": {k: v for k, v in value.items() if k != "content"}}
 
     def get_value(self) -> str:
-        return self.data["content"]
+        return self.data.get("content", "")
 
     def save_to_file(self):
         try:
             with open(self.save_path, "w") as file:
-                json.dump(self.data, file)
+                json.dump({"content": self.data["content"]}, file)
         except Exception as e:
             print(f"Error saving to file: {e}")
 
@@ -42,6 +42,4 @@ class File(BaseFileSection):
             print(f"Error loading from file: {e}")
 
     def save_to_json(self) -> str:
-        return json.dumps(self.data)
-
- #
+        return json.dumps({"content": self.data})

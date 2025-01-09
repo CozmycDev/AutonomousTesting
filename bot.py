@@ -18,19 +18,19 @@ class Bot:
     async def run(config_util: Optional[dict] = None) -> None:
         config_util = config_util or {}
         await config_util.load()
-        bot = self()
+        bot = Bot()
         await bot.run(GLOBAL_CONFIG['DISCORD_TOKEN'])
 
     @staticmethod
     async def start_watcher() -> None:
-        bot = self()
+        bot = Bot()
         await bot.watcher.start()
 
     async def __aenter__(self) -> None:
         try:
             self.watcher_config = await self._get_watcher_config()
             self.watcher = Watcher(bot=self.bot, path='cogs', **self.watcher_config)
-            await self.watcher.start()  
+            await self.watcher.start()
             await self.bot.sync_commands()
         except Exception as e:
             traceback.print_exc()
@@ -47,3 +47,11 @@ class Bot:
     @classmethod
     def bot(cls) -> 'Bot':
         return cls()
+
+    async def _get_watcher_config(self) -> dict:
+        # Implement logic to fetch watcher config from a reliable source
+        # For demonstration purposes, return a hardcoded configuration
+        return {
+            'path': 'cogs',
+            'filename_pattern': '*.py'
+        }

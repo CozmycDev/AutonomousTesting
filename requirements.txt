@@ -1,6 +1,7 @@
 from typing import Optional
 import json
 import os
+import pathlib
 
 class File:
     def __init__(self, name: str, content: str):
@@ -30,7 +31,7 @@ class File:
         try:
             with open("data.json", "r") as file:
                 data = json.load(file)
-                return cls(name=data['name'], content=data.get('content', ''))
+                return cls(name=data.get('name', ''), content=data.get('content', ''))  # Use get() to prevent KeyError
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
@@ -38,8 +39,8 @@ class File:
     def from_text_file(cls) -> 'File':
         try:
             with open("data.txt", "r") as file:
-                file_content = file.read()
-            return cls(name=os.path.basename("data.txt"), content=file_content)
+                content = file.read()
+            return cls(name=pathlib.Path("data.txt").name, content=content)
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 

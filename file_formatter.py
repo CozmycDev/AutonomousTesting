@@ -11,11 +11,13 @@ class FileFormatter:
     
     @staticmethod
     def format_file_from_json(file_name: str):
+        data = None
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                return data["content"]
         except FileNotFoundError:
             print(f"No JSON file found at {file_name}")
         except Exception as e:
             print(f"Error loading from file: {e}")
+
+        return data.get("content", None)

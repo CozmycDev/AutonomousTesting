@@ -15,3 +15,4 @@ class PingCommand(commands.Cog):
         
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(PingCommand(bot))
+    bot.tree.sync()  # Ensure the slash command is synced with the Discord API
