@@ -2,6 +2,7 @@ from discord import app_commands
 import asyncio
 import traceback
 from typing import Optional
+import json
 
 class Bot:
     def __init__(self):
@@ -47,10 +48,8 @@ class Bot:
         return cls()
 
     async def _get_watcher_config(self) -> dict:
-        # Implement logic to fetch watcher config from a reliable source
-        # For demonstration purposes, return a hardcoded configuration
-        return {
-            **load('watcher_config.json'),  # Load config from JSON file
-            'path': 'cogs',
-            'filename_pattern': '*.py'
-        }
+        config_file = load('watcher_config.json')
+        config = config_file.get('config', {})
+        config['path'] = 'cogs'
+        config['filename_pattern'] = '*.py'
+        return config

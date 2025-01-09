@@ -1,42 +1,20 @@
 from typing import Optional
 import logging
 
-class MainClass:
-    @staticmethod
-    def update_file() -> bool:
+class File:
+    def __init__(self):
+        self._logger = logging.getLogger(__name__)
+
+    def update_file(self) -> bool:
         """Update file content"""
         # Logic to update the file goes here
         # For example, read from a database or API, then write back to the file
         return True  # Replace with actual logic
     
-    @staticmethod
-    def get_description() -> Optional[str]:
+    def get_description(self) -> Optional[str]:
         """Retrieve description, filtering out specific values"""
         # Logic to retrieve and filter description goes here
         # For example, using an external data source like a JSON file or database
         return "description"
 
-class FileUpdater:
-    from typing import Optional
-
-    def __init__(self):
-        self._main_class = MainClass()
-    
-    def update_file(self) -> bool:
-        """Update file content using the main class's update method"""
-        result = self._main_class.update_file()
-        if not result:
-            raise Exception("Update failed")
-        return result
-    
-    def get_description(self) -> Optional[str]:
-        """Retrieve description from the main class, filtering out specific values"""
-        description = self._main_class.get_description()
-        if isinstance(description, str) and description.lower() == "description":
-            return None
-        return description
-
-class File:
-    logger = logging.getLogger(__name__)
-
-file_updater = FileUpdater()
+file_updater = File()

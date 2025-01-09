@@ -11,13 +11,13 @@ class File(BaseFileSection):
 
     @property
     def data(self) -> Dict[str, Any]:
-        return {"content": self._data} if self._data else {}
+        return {"content": {k: v for k, v in self._data.items() if v is not None}}
 
     @data.setter
     def data(self, value: Dict[str, Any]):
         if not isinstance(value, dict):
             raise ValueError("Data must be a dictionary")
-        self._data = value
+        self._data = {k: v for k, v in value.items() if v is not None}
 
     def get_value(self) -> str:
         return self.data.get("content", "")
@@ -41,5 +41,12 @@ class File(BaseFileSection):
     def save_to_json(self) -> str:
         return json.dumps(self.data)
 
-
-#
+    @staticmethod
+    def _validate_file_content(file_name: str, content: str):
+        try:
+            with open(file_name, "r") as file:
+                existing_content = file.read()
+                if content != existing_content:
+                    File._load_from_file(file_name)
+        except Exception as e:
+            print(f"Error validating file content: {e}")
