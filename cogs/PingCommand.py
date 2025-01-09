@@ -16,3 +16,18 @@ class PingCommand(commands.Cog):
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(PingCommand(bot))
     bot.tree.sync()  # Ensure the slash command is synced with the Discord API
+
+class PingController(commands.Cog):
+    
+    def __init__(self, bot):
+        self.bot = bot
+        
+    @commands.slash_command(name='ping', description='Example slash command.')
+    async def ping(self, ctx: discord.ApplicationContext):
+        await ctx.defer()
+        return f"User said {ctx.invoked_with[0]}"
+
+def load_cogs(bot: commands.Bot) -> None:
+    from repo.cogs import PingCommand
+    bot.add_cog(PingCommand(bot))
+    bot.tree.sync()  # Ensure the slash command is synced with the Discord API

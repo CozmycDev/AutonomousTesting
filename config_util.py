@@ -8,6 +8,7 @@ class File(BaseFileSection):
         super().__init__("File")
         self._file_name = file_name
         self.save_path = save_path
+        self._data: Dict[str, Any] = {}
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -29,24 +30,33 @@ class File(BaseFileSection):
         except Exception as e:
             print(f"Error saving to file: {e}")
 
-    @staticmethod
-    def _load_from_file(file_name: str) -> None:
+    @classmethod
+    def _load_from_file(cls, file_name: str) -> None:
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                File._data = data.get("content", {})
+                cls._data = data.get("content", {})
         except Exception as e:
             print(f"Error loading from file: {e}")
 
     def save_to_json(self) -> str:
         return json.dumps(self.data)
 
-    @staticmethod
-    def _validate_file_content(file_name: str, content: str):
+    @classmethod
+    def _validate_file_content(cls, file_name: str, content: str):
         try:
             with open(file_name, "r") as file:
                 existing_content = file.read()
                 if content != existing_content:
-                    File._load_from_file(file_name)
+                    cls._load_from_file(file_name)
         except Exception as e:
             print(f"Error validating file content: {e}")
+
+    @staticmethod
+    def validate_file_content(file_name: str, content: str) -> None:
+        File._validate_file_content(file_name, content)
+
+    @classmethod
+    def create_new_file(cls, save_path: str):
+        new_file = cls(save_path, "")
+        return new_file

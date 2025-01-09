@@ -4,13 +4,15 @@ from typing import Optional
 
 class FileFormatter:
     @staticmethod
-    def _get_or_create_file(file_name: str):
+    def _get_or_create_file(file_name: str) -> open:
         try:
             return open(file_name, "r")
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             with open(file_name, "w") as file:
                 pass
             return open(file_name)
+        except Exception as e:
+            raise Exception(f"Error creating file {e}")
 
     @staticmethod
     def format_file(file_name: str, content: Optional[str] = None):
@@ -35,3 +37,15 @@ class FileFormatter:
             print(f"Error loading from file: {e}")
 
         return data.get("content", None)
+
+    @staticmethod
+    def format_file_to_json(file_name: str, content: Optional[str] = None) -> None:
+        if not content:
+            raise ValueError("Content is required")
+        
+        try:
+            with open(file_name, "w") as file:
+                data = {"content": content}
+                dump(data, file)
+        except Exception as e:
+            print(f"Error saving to JSON file: {e}")

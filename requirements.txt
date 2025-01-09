@@ -4,21 +4,26 @@ import os
 import pathlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from file_type_loader import JsonFileTypeLoader, TextFileTypeLoader  # Import from related file
+
 
 @dataclass
 class FileData:
     name: str
     content: str
 
+
 @dataclass
 class FileType:
     extension: str
     loader: 'FileTypeLoader'
 
+
 class FileTypeLoader(ABC):
     @abstractmethod
     def load(self) -> 'File':
         pass
+
 
 class JsonFileTypeLoader(FileTypeLoader):
     def load(self) -> 'File':
@@ -29,6 +34,7 @@ class JsonFileTypeLoader(FileTypeLoader):
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
+
 class TextFileTypeLoader(FileTypeLoader):
     def load(self) -> 'File':
         try:
@@ -37,6 +43,7 @@ class TextFileTypeLoader(FileTypeLoader):
             return File(name=pathlib.Path("data.txt").name, content=content)
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
+
 
 class FileTypeManager:
     def __init__(self):
@@ -48,41 +55,27 @@ class FileTypeManager:
     def get_file_type(self, extension: str) -> 'FileType':
         return self.file_types.get(extension, None)
 
-class File:
-    def __init__(self, name: str, content: Optional[str] = None):
-        if not isinstance(name, str):
-            raise TypeError("File name must be a string")
-        
-        try:
-            if not os.path.exists(f"data/{name}.txt"):
-                with open(os.path.join("data", f"{name}.txt"), "w") as file:
-                    file.write("")
-        except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
 
-        self._content = content
-        self._name = name
+@dataclass
+class File(FileData):  # Improved class definition for better readability and maintainability
+    name: str
+    content: Optional[str] = None
 
     @classmethod
     def from_path(cls, filename: str) -> 'File':
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
-        
+
         file_type_manager = FileTypeManager()
         file_type = file_type_manager.get_file_type(os.path.splitext(filename)[1])
         return cls.from_extension(file_type)
 
     @classmethod
     def from_extension(cls, extension: str) -> 'File':
-        try:
-            if extension == '.json':
-                return cls.from_json()
-            elif extension == '.txt':
-                return cls.from_text_file()
-            else:
-                raise ValueError(f"Unsupported file type: {extension}")
-        except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
+        if extension == '.json':
+            return cls.from_json()
+        elif extension == '.txt':
+            return cls.from_text_file()
 
     @classmethod
     def from_json(cls) -> 'File':
@@ -107,29 +100,33 @@ class File:
         with open(filename, 'w') as file:
             json.dump(data, file, indent=4)
 
-class FileIO:
     @classmethod
-    def read_file(cls, filename: str) -> Optional[str]:
+    def read_from_file(cls, filename: str) -> Optional['File']:
         try:
-            with open(filename, "r") as file:
-                return file.read()
+            content = cls.FileIO.read_file(filename)
+            if not content:
+                return None
+            return cls(name=pathlib.Path(filename).name, content=content)
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
-    @classmethod
-    def write_file(cls, filename: str, content: str):
-        with open(filename, "w") as file:
-            file.write(content)
 
-class FileManagement:
     @classmethod
-    def update_file(cls, name: str, content: Optional[str] = None) -> 'File':
+    def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
         try:
-            existing_content = cls.read_file(f"data/{name}.txt")
+            existing_content = cls.FileManagement.read_file(f"data/{name}.txt")
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
-        if content is not None:
-            cls.write_file(f"data/{name}.txt", content)
+        if new_content is not None:
+            cls.FileManagement.write_file(f"data/{name}.txt", new_content)
         
         return cls.from_path(f"data/{name}.txt")
+
+
+    @classmethod
+    def delete_file(cls, name: str) -> None:
+        try:
+            os.remove(f"data/{name}.txt")
+        except Exception as e:
+            raise ValueError(f"Failed to load file: {str(e)}")
