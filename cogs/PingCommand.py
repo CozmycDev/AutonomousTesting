@@ -12,7 +12,7 @@ class PingCommand(commands.Cog):
     async def test_command(self, ctx: discord.ApplicationContext, test_string: str):
         await ctx.defer()
         await ctx.respond(content=f"User said {test_string}")
-        
-        
+
+
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(PingCommand(bot))

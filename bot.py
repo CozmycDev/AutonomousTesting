@@ -10,8 +10,8 @@ class Bot:
 
     @bot.event
     async def on_ready(self):
-        watcher_config = self._get_watcher_config()
-        self.watcher = Watcher(bot=self.bot, path='cogs', **watcher_config)
+        self.watcher_config = self._get_watcher_config()
+        self.watcher = Watcher(bot=self.bot, path='cogs', **self.watcher_config)
         await self.watcher.start()  
         await self.bot.sync_commands()
 
@@ -22,7 +22,7 @@ class Bot:
     @staticmethod
     async def run(config_util: Optional[dict] = None) -> None:
         config_util = config_util or {}
-        config_util.load()
+        await config_util.load()
         bot = Bot()
         await bot.run(GLOBAL_CONFIG['DISCORD_TOKEN'])
 

@@ -14,12 +14,32 @@ class File:
             return cls(name=data['name'], content=data.get('content', ''))
 
     @classmethod
-    def from_text(cls, filename: str, content: Optional[str] = None) -> 'File':
+    def from_text_file(cls, filename: str, content: Optional[str] = None) -> 'File':
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
         with open(filename, 'r') as file:
             file_content = file.read()
         return cls(name=filename, content=file_content) if content is None else cls(name=filename, content=content)
+
+    @classmethod
+    def from_json_file(cls, filename: str) -> 'File':
+        try:
+            with open(filename, 'r') as file:
+                data = json.load(file)
+                return cls(name=data['name'], content=data.get('content', ''))
+
+        except FileNotFoundError:
+            raise ValueError(f"Failed to load JSON file {filename}")
+
+    @classmethod
+    def from_file(cls, filename: str) -> 'File':
+        try:
+            with open(filename, 'r') as file:
+                file_content = file.read()
+                return cls(name=filename, content=file_content)
+
+        except FileNotFoundError:
+            raise ValueError(f"Failed to load file {filename}")
 
     def save_to_json(self, filename: str):
         data = {'name': self._name, 'content': self._content}
@@ -30,8 +50,13 @@ class File:
         return f"{self._name}: {self._content}"
 
     @classmethod
-    def from_file(cls, filename: str) -> 'File':
-        try:
-            return cls.from_text(filename)
-        except FileNotFoundError:
-            raise ValueError(f"Failed to load file {filename}")
+    def from_json_data(cls, data: dict) -> 'File':
+        return cls(name=data['name'], content=data.get('content', ''))
+
+    @classmethod
+    def from_file_data(cls, data: dict) -> 'File':
+        if not data:
+            raise ValueError("Data is empty")
+        file = File.from_text(data['filename'])
+        file._content = data.get('file_content', '')
+        return file
