@@ -3,6 +3,8 @@ import json
 import io
 import traceback
 
+load_dotenv()
+
 
 def load_environment_variables():
     env_vars = {key: value for key, value in os.environ.items()}
