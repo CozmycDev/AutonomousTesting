@@ -2,6 +2,52 @@ from typing import Optional
 import json
 import os
 import pathlib
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+@dataclass
+class FileData:
+    name: str
+    content: str
+
+@dataclass
+class FileType:
+    extension: str
+    loader: 'FileTypeLoader'
+
+class FileTypeLoader(ABC):
+    @abstractmethod
+    def load(self) -> 'File':
+        pass
+
+class JsonFileTypeLoader(FileTypeLoader):
+    def load(self) -> 'File':
+        try:
+            with open("data.json", "r") as file:
+                data = json.load(file)
+                return File(name=data.get('name', ''), content=data.get('content', '')  # Use get() to prevent KeyError
+                            )
+        except Exception as e:
+            raise ValueError(f"Failed to load file: {str(e)}")
+
+class TextFileTypeLoader(FileTypeLoader):
+    def load(self) -> 'File':
+        try:
+            with open("data.txt", "r") as file:
+                content = file.read()
+            return File(name=pathlib.Path("data.txt").name, content=content)
+        except Exception as e:
+            raise ValueError(f"Failed to load file: {str(e)}")
+
+class FileTypeManager:
+    def __init__(self):
+        self.file_types = {
+            '.json': JsonFileTypeLoader(),
+            '.txt': TextFileTypeLoader()
+        }
+
+    def get_file_type(self, extension: str) -> 'FileType':
+        return self.file_types.get(extension, None)
 
 class File:
     def __init__(self, name: str, content: str):
@@ -12,7 +58,9 @@ class File:
     def from_path(cls, filename: str) -> 'File':
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
-        return cls.from_extension(os.path.splitext(filename)[1])
+        file_type_manager = FileTypeManager()
+        file_type = file_type_manager.get_file_type(os.path.splitext(filename)[1])
+        return cls.from_extension(file_type)
 
     @classmethod
     def from_extension(cls, extension: str) -> 'File':
@@ -48,6 +96,3 @@ class File:
         data = {'name': self._name, 'content': self._content}
         with open(filename, 'w') as file:
             json.dump(data, file, indent=4)
-
-    def __str__(self) -> str:
-        return f"{self._name}: {self._content}"

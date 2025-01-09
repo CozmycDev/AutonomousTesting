@@ -52,6 +52,7 @@ class Bot:
         # Implement logic to fetch watcher config from a reliable source
         # For demonstration purposes, return a hardcoded configuration
         return {
+            **load('watcher_config.json'),  # Load config from JSON file
             'path': 'cogs',
             'filename_pattern': '*.py'
         }

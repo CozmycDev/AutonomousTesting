@@ -16,3 +16,16 @@ class PingCommand(commands.Cog):
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(PingCommand(bot))
     bot.tree.sync()  # Ensure the slash command is synced with the Discord API
+
+    **setup**
+    def load cog():
+        try:
+            import os
+            print(os.getcwd())
+            
+        except Exception as e:
+            print("An error occurred: ", str(e))
+            
+def setup(bot: commands.Bot) -> None:
+    bot.add_cog(PingCommand(bot))
+    bot.tree.sync()  # Ensure the slash command is synced with the Discord API
