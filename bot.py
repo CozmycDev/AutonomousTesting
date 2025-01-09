@@ -1,9 +1,9 @@
-import discord
-from cogwatch import Watcher
-from config_util import load, GLOBAL_CONFIG
 from typing import Optional
 import asyncio
 import traceback
+import discord
+from cogwatch import Watcher
+from config_util import load, GLOBAL_CONFIG
 
 class Bot:
     def __init__(self):
@@ -27,16 +27,22 @@ class Bot:
         await bot.watcher.start()
 
     async def __aenter__(self) -> None:
-        self.watcher_config = await self._get_watcher_config()
-        self.watcher = Watcher(bot=self.bot, path='cogs', **self.watcher_config)
-        await self.watcher.start()  
-        await self.bot.sync_commands()
+        try:
+            self.watcher_config = await self._get_watcher_config()
+            self.watcher = Watcher(bot=self.bot, path='cogs', **self.watcher_config)
+            await self.watcher.start()  
+            await self.bot.sync_commands()
+        except Exception as e:
+            traceback.print_exc()
 
     async def __aexit__(self, exc_type: Optional[type], exc_value: Optional[Exception], traceback: Optional[traceback.TracebackType]) -> None:
-        if not issubclass(exc_type, KeyboardInterrupt):
-            raise exc_value
-        self.watcher.stop()
-        await self.bot.close()
+        try:
+            if not issubclass(exc_type, KeyboardInterrupt):
+                raise exc_value
+            self.watcher.stop()
+            await self.bot.close()
+        except Exception as e:
+            traceback.print_exc()
 
     @classmethod
     def bot(cls) -> 'Bot':

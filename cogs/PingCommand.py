@@ -13,6 +13,6 @@ class PingCommand(commands.Cog):
         await ctx.defer()
         return f"User said {test_string}"
 
-
+        
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(PingCommand(bot))

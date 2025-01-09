@@ -12,12 +12,19 @@ class File:
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
         file_extension = os.path.splitext(filename)[1]
-        if file_extension == '.json':
-            return cls.from_json(filename)
-        elif file_extension == '.txt':
-            return cls.from_text_file(filename)
-        else:
-            raise ValueError(f"Unsupported file type: {file_extension}")
+        return cls.from_extension(filename, file_extension)
+
+    @classmethod
+    def from_extension(cls, filename: str, extension: str) -> 'File':
+        try:
+            if extension == '.json':
+                return cls.from_json(filename)
+            elif extension == '.txt':
+                return cls.from_text_file(filename)
+            else:
+                raise ValueError(f"Unsupported file type: {extension}")
+        except Exception as e:
+            raise ValueError(f"Failed to load file {filename}: {str(e)}")
 
     @classmethod
     def from_json(cls, filename: str) -> 'File':
@@ -30,7 +37,7 @@ class File:
         try:
             with open(filename, 'r') as file:
                 file_content = file.read()
-            return cls(name=filename, content=file_content)
+            return cls(name=os.path.basename(filename), content=file_content)
 
         except Exception as e:
             raise ValueError(f"Failed to load file {filename}: {str(e)}")
