@@ -15,10 +15,13 @@ class FileSection(ABC):
     def save_to_json(self) -> str:
         return f'"{self.name}":{{{{"json": {self.get_value().save_to_json()}}}}}}'
 
-    def save_to_file(self, file_name: str):
+    def _load_from_file(self, file_name: str):
         import json
-        with open(file_name, "w") as file:
-            json.dump({self.name: self.data}, file)
+        try:
+            with open(file_name, "r") as file:
+                self.data = json.load(file)
+        except FileNotFoundError:
+            pass
 
     @property
     def items(self) -> Dict[str, Any]:
@@ -66,10 +69,10 @@ def load_file_config(config_name: str, file_section_types: Dict[str, type]) -> D
     for section_type in file_section_types.values():
         section = FileSection.create(config, section_type.__name__)
         try:
-            with open(f"{config_name}.{section.name}", "r") as file:
-                config[section] = section_type().from_json(file.read())
+            section._load_from_file(f"{config_name}.{section.name}")
         except FileNotFoundError:
             pass
+        config[section] = section_type()
     return config
 
 def from_json(json_str: str) -> object:

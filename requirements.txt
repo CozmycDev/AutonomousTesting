@@ -1,5 +1,6 @@
 from typing import Optional
 import json
+import os
 
 class File:
     def __init__(self, name: str, content: str):
@@ -14,9 +15,11 @@ class File:
 
     @classmethod
     def from_text(cls, filename: str, content: Optional[str] = None) -> 'File':
-        if content is not None:
-            return cls(name=filename, content=content)
-        raise ValueError("Content must be provided")
+        if not os.path.exists(filename):
+            raise FileNotFoundError(f"File {filename} does not exist")
+        with open(filename, 'r') as file:
+            file_content = file.read()
+        return cls(name=filename, content=file_content) if content is None else cls(name=filename, content=content)
 
     def save_to_json(self, filename: str):
         data = {'name': self._name, 'content': self._content}
@@ -25,3 +28,10 @@ class File:
 
     def __str__(self) -> str:
         return f"{self._name}: {self._content}"
+
+    @classmethod
+    def from_file(cls, filename: str) -> 'File':
+        try:
+            return cls.from_text(filename)
+        except FileNotFoundError:
+            raise ValueError(f"Failed to load file {filename}")

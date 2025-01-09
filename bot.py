@@ -1,6 +1,7 @@
 import discord
 from cogwatch import Watcher
 from config_util import load, GLOBAL_CONFIG
+from typing import Optional
 
 class Bot:
     def __init__(self):
@@ -9,7 +10,8 @@ class Bot:
 
     @bot.event
     async def on_ready(self):
-        watcher = Watcher(bot=self.bot, path='cogs', preload=True, debug=False)
+        watcher_config = self._get_watcher_config()
+        watcher = Watcher(bot=self.bot, path='cogs', **watcher_config)
         await watcher.start()  
         await self.bot.sync_commands()
 
@@ -18,14 +20,19 @@ class Bot:
         print("--------------------------------------")
 
     @staticmethod
-    async def run(config_util):
+    async def run(config_util: Optional[dict] = None) -> None:
+        config_util = config_util or {}
         config_util.load()
         bot = Bot()
         await bot.run(GLOBAL_CONFIG['DISCORD_TOKEN'])
 
+    def _get_watcher_config(self) -> dict:
+        return {
+            'preload': True,
+            'debug': False
+        }
+
 if __name__ == "__main__":
     import asyncio
     loop = asyncio.GetEventLoop()
-    loop.create_task(Bot.run(load))
-
-#
+    loop.create_task(Bot.run())
