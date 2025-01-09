@@ -7,57 +7,8 @@ from dataclasses import dataclass
 from file_type_loader import JsonFileTypeLoader, TextFileTypeLoader  # Import from related file
 
 
-@dataclass
-class FileData:
-    name: str
-    content: str
-
-
-@dataclass
-class FileType:
-    extension: str
-    loader: 'FileTypeLoader'
-
-
-class FileTypeLoader(ABC):
-    @abstractmethod
-    def load(self) -> 'File':
-        pass
-
-
-class JsonFileTypeLoader(FileTypeLoader):
-    def load(self) -> 'File':
-        try:
-            with open("data.json", "r") as file:
-                data = json.load(file)
-                return File(name=data.get('name', ''), content=data.get('content', ''))  # Use get() to prevent KeyError
-        except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
-
-
-class TextFileTypeLoader(FileTypeLoader):
-    def load(self) -> 'File':
-        try:
-            with open("data.txt", "r") as file:
-                content = file.read()
-            return File(name=pathlib.Path("data.txt").name, content=content)
-        except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
-
-
-class FileTypeManager:
-    def __init__(self):
-        self.file_types = {
-            '.json': JsonFileTypeLoader(),
-            '.txt': TextFileTypeLoader()
-        }
-
-    def get_file_type(self, extension: str) -> 'FileType':
-        return self.file_types.get(extension, None)
-
-
-@dataclass
-class File(FileData):  # Improved class definition for better readability and maintainability
+@dataclass(frozen=True)
+class File:
     name: str
     content: Optional[str] = None
 
@@ -95,33 +46,47 @@ class File(FileData):  # Improved class definition for better readability and ma
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
-    def save_to_json(self, filename: str):
-        data = {'name': self._name, 'content': self._content}
-        with open(filename, 'w') as file:
-            json.dump(data, file, indent=4)
-
-    @classmethod
-    def read_from_file(cls, filename: str) -> Optional['File']:
-        try:
-            content = cls.FileIO.read_file(filename)
-            if not content:
-                return None
-            return cls(name=pathlib.Path(filename).name, content=content)
-        except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
-
-
     @classmethod
     def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
         try:
-            existing_content = cls.FileManagement.read_file(f"data/{name}.txt")
+            existing_content = cls.read_from_file(f"data/{name}.txt")
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
         if new_content is not None:
-            cls.FileManagement.write_file(f"data/{name}.txt", new_content)
+            cls.write_to_json(f"data/{name}.txt", new_content)
         
         return cls.from_path(f"data/{name}.txt")
+
+
+    @classmethod
+    def write_to_json(cls, filename: str, content: Optional[str] = None) -> 'File':
+        data = {'name': pathlib.Path(filename).name, 'content': content}
+        with open(filename, "w") as file:
+            json.dump(data, file, indent=4)
+
+
+    @classmethod
+    def read_from_file(cls, filename: str) -> Optional['File']:
+        try:
+            content = cls.read_json(f"data/{filename}")
+        except Exception as e:
+            raise ValueError(f"Failed to load file: {str(e)}")
+
+        return cls(name=pathlib.Path(filename).name, content=content)
+
+
+    @classmethod
+    def read_json(cls, filename: str) -> Optional[str]:
+        try:
+            with open(filename, "r") as file:
+                data = json.load(file)
+                if 'content' in data:
+                    return data['content']
+                else:
+                    return None
+        except Exception as e:
+            raise ValueError(f"Failed to load file: {str(e)}")
 
 
     @classmethod

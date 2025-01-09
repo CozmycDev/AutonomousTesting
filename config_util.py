@@ -8,7 +8,7 @@ class File(BaseFileSection):
         super().__init__("File")
         self._file_name = file_name
         self.save_path = save_path
-        self._data: Dict[str, Any] = {}
+        self._data = {}
 
     @property
     def data(self) -> Dict[str, Any]:

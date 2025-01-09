@@ -48,8 +48,11 @@ class Bot:
         return cls()
 
     async def _get_watcher_config(self) -> dict:
-        config_file = load('watcher_config.json')
-        config = config_file.get('config', {})
-        config['path'] = 'cogs'
-        config['filename_pattern'] = '*.py'
-        return config
+        with open('watcher_config.json') as config_file:
+            config_data = json.load(config_file)
+        watcher_config = config_data.get('config', {})
+        watcher_config['path'] = 'cogs'
+        watcher_config['filename_pattern'] = '*.py'
+        return watcher_config
+
+    # No changes required in the File section

@@ -4,12 +4,15 @@ from discord.ext import commands
 
 
 class PingCommand(commands.Cog):
+    """Ping command cog."""
     
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         
-    @slash_command(name='ping', description='Example slash command.')
-    async def test_command(self, ctx: discord.ApplicationContext, test_string: Option(str, 'The string to say')):
+    @slash_command(name='ping', description='Example slash command.', options=Option('The string to say', 'The string to display.')
+                   )
+    async def test_command(self, ctx: discord.ApplicationContext, test_string: str):
+        """Test command that returns the input string."""
         await ctx.defer()
         return f"User said {test_string}"
         
@@ -19,11 +22,12 @@ def setup(bot: commands.Bot) -> None:
 
 class PingController(commands.Cog):
     
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         
     @commands.slash_command(name='ping', description='Example slash command.')
     async def ping(self, ctx: discord.ApplicationContext):
+        """Ping command that returns a greeting."""
         await ctx.defer()
         return f"User said {ctx.invoked_with[0]}"
 

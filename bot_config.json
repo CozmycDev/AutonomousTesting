@@ -9,16 +9,28 @@ class File:
 
     def update_file(self) -> bool:
         """Update file content by reading from database and API"""
-        updated_content = self.database_connection.read_from_database() + self.api_client.get_data_from_api()
+        updated_content = self._generate_updated_content()
         with open("file.txt", "w") as file_object:
             file_object.write(updated_content)
         return True
 
+    def _generate_updated_content(self) -> str:
+        """Generate updated content by combining database and API data"""
+        database_data = self.database_connection.read_from_database()
+        api_data = self.api_client.get_data_from_api()
+        return f"{database_data} {api_data}"
+
     def get_description(self) -> Optional[str]:
         """Retrieve description, filtering out specific values from database"""
-        description = self.database_connection.read_from_database().get("description")
-        if description is not None and description.lower() != "specific_value":
-            return description
+        description = self._filter_description()
+        return description
+
+    @staticmethod
+    def _filter_description() -> Optional[str]:
+        """Filter description from database data"""
+        database_data = DatabaseConnection().read_from_database()
+        if "description" in database_data and database_data["description"].lower() != "specific_value":
+            return database_data["description"]
         else:
             return "default_description"
 
