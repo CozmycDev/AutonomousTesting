@@ -5,6 +5,10 @@ from discord.commands import slash_command
 from discord.ext import commands
 
 
+# TODO: add all the commands and functionality you would expect to see for a Discord moderation bot. kick, ban, mute
+# TODO: add listeners for broadcasting member join/leaves in a specific guild/channel.
+
+
 class PingCommand(commands.Cog):
     
     def __init__(self, bot):
