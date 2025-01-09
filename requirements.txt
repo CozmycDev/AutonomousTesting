@@ -1,15 +1,16 @@
 from typing import Optional
+import json
 
 class File:
     def __init__(self, name: str, content: str):
-        self.name = name
-        self.content = content
+        self._name = name
+        self._content = content
 
     @classmethod
     def from_json(cls, filename: str) -> 'File':
         with open(filename, 'r') as file:
-            data = file.read()
-            return cls(name=f"{filename}.txt", content=data)
+            data = json.load(file)
+            return cls(name=data['name'], content=data['content'])
 
     @classmethod
     def from_text(cls, filename: str, content: Optional[str] = None) -> 'File':
@@ -18,8 +19,9 @@ class File:
         raise ValueError("Content must be provided")
 
     def save_to_json(self, filename: str):
+        data = {'name': self._name, 'content': self._content}
         with open(filename, 'w') as file:
-            file.write(self.content)
+            json.dump(data, file)
 
     def __str__(self) -> str:
-        return f"{self.name}: {self.content}"
+        return f"{self._name}: {self._content}"

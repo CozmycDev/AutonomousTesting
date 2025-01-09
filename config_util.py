@@ -1,51 +1,79 @@
-def load_dotenv():
-    import os
-    import json
-    import io
-    import traceback
+from abc import ABC, abstractmethod
+import json
+from typing import Dict, Any
 
-    os.environ.clear()
-    with open(".env", "r") as env_file:
-        for line in env_file.readlines():
-            key, value = line.strip().split("=")
-            os.environ[key] = value
-
-
-def load_environment_variables():
-    from dotenv import load_dotenv
-    load_dotenv()
-
-    return dict(os.environ)
-
-
-ENVIRONMENT_VARIABLES = load_environment_variables()
-GLOBAL_CONFIG = {}
-
-class FileSection:
-    def __init__(self, name):
+class FileSection(ABC):
+    def __init__(self, name: str):
         self.name = name
+        self.data = {}
 
-    @classmethod
-    def create(cls, config, key):
-        section = None
-        parts = key.split('.')
-        for part in parts:
-            if section is None:
-                section = cls(name=part)
-            else:
-                section = getattr(section, f"_{part}")
-        
-        return section
+    @abstractmethod
+    def get_value(self) -> Any:
+        pass
 
     @property
-    def save_to_json(self, config):
-        return f'"{self.name}":{{{{"json": self.value.save_to_json()}}}}'
+    def save_to_json(self) -> str:
+        return f'"{self.name}":{{{{"json": {self.get_value().save_to_json()}}}}}}'
 
-    def save_to_file(self, file_name):
+    def save_to_file(self, file_name: str):
         import json
         with open(file_name, "w") as file:
-            json.dump({self.name: {key: value for key, value in self.items()}}, file)
+            json.dump({self.name: self.data}, file)
 
     @property
-    def items(self):
-        return {key: value for section in [self] for key, value in getattr(section, f"_{name}", {}).items() if name}
+    def items(self) -> Dict[str, Any]:
+        return {key: value for key, value in self.data.items()}
+
+class BaseFileSection(FileSection):
+    def __init__(self, name: str, default_value=None):
+        super().__init__(name)
+        self.default_value = default_value
+
+    @abstractmethod
+    def get_value(self) -> Any:
+        pass
+
+class StringFileSection(BaseFileSection):
+    def __init__(self, name: str, default_value=""):
+        super().__init__(name, default_value)
+
+    def get_value(self) -> str:
+        return self.data.get("value", self.default_value)
+
+class IntFileSection(BaseFileSection):
+    def __init__(self, name: str, default_value=0):
+        super().__init__(name, default_value)
+
+    def get_value(self) -> int:
+        return self.data.get("value", self.default_value)
+
+class BoolFileSection(BaseFileSection):
+    def __init__(self, name: str, default_value=False):
+        super().__init__(name, default_value)
+
+    def get_value(self) -> bool:
+        return self.data.get("value", self.default_value)
+
+class PathFileSection(BaseFileSection):
+    def __init__(self, name: str, default_value=""):
+        super().__init__(name, default_value)
+
+    def get_value(self) -> str:
+        return self.data.get("path", self.default_value)
+
+def load_file_config(config_name: str, file_section_types: Dict[str, type]) -> Dict:
+    config = {}
+    for section_type in file_section_types.values():
+        section = FileSection.create(config, section_type.__name__)
+        try:
+            with open(f"{config_name}.{section.name}", "r") as file:
+                config[section] = section_type().from_json(file.read())
+        except FileNotFoundError:
+            pass
+    return config
+
+def from_json(json_str: str) -> object:
+    import json
+    return json.loads(json_str)
+
+#
