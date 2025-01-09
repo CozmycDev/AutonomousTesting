@@ -8,16 +8,9 @@ class Bot:
         self.intents = discord.Intents.default()
         self.bot = discord.Bot(intents=self.intents)
 
-    @bot.event
-    async def on_ready(self):
-        self.watcher_config = self._get_watcher_config()
-        self.watcher = Watcher(bot=self.bot, path='cogs', **self.watcher_config)
-        await self.watcher.start()  
-        await self.bot.sync_commands()
-
-        print("--------------------------------------")
-        print(f"Logged in as {self.bot.user} (v{GLOBAL_CONFIG.get('main.version')})")
-        print("--------------------------------------")
+    @property
+    async def watcher_config(self) -> dict:
+        return self._get_watcher_config()
 
     @staticmethod
     async def run(config_util: Optional[dict] = None) -> None:
@@ -26,11 +19,22 @@ class Bot:
         bot = Bot()
         await bot.run(GLOBAL_CONFIG['DISCORD_TOKEN'])
 
-    def _get_watcher_config(self) -> dict:
-        return {
-            'preload': True,
-            'debug': False
-        }
+    @staticmethod
+    async def start_watcher() -> None:
+        bot = Bot()
+        await bot.watcher.start()
+
+    async def __aenter__(self) -> None:
+        self.watcher_config = self._get_watcher_config()
+        self.watcher = Watcher(bot=self.bot, path='cogs', **self.watcher_config)
+        await self.watcher.start()  
+        await self.bot.sync_commands()
+
+    async def __aexit__(self, exc_type: Optional[type], exc_value: Optional[Exception], traceback: Optional[traceback.TracebackType]) -> None:
+        if not issubclass(exc_type, KeyboardInterrupt):
+            raise exc_value
+        self.watcher.stop()
+        await self.bot.close()
 
 if __name__ == "__main__":
     import asyncio
