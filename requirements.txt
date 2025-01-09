@@ -11,7 +11,7 @@ class File:
     def from_json(cls, filename: str) -> 'File':
         with open(filename, 'r') as file:
             data = json.load(file)
-            return cls(name=data['name'], content=data['content'])
+            return cls(name=data['name'], content=data.get('content', ''))
 
     @classmethod
     def from_text(cls, filename: str, content: Optional[str] = None) -> 'File':
@@ -24,7 +24,7 @@ class File:
     def save_to_json(self, filename: str):
         data = {'name': self._name, 'content': self._content}
         with open(filename, 'w') as file:
-            json.dump(data, file)
+            json.dump(data, file, indent=4)
 
     def __str__(self) -> str:
         return f"{self._name}: {self._content}"

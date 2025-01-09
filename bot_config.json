@@ -1,10 +1,12 @@
 {
   "file": {
     "version": "1.0.0",
-    "api_version": "v1"
-  },
-  "main": {
-    "version": "1.0.0",
-    "api_version": "v1"
+    "api_version": "v1",
+    "description": "",
+    "author": "",
+    "keywords": [],
+    "dependencies": [
+      "./main.json"
+    ]
   }
 }

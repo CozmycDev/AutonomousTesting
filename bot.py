@@ -11,8 +11,8 @@ class Bot:
     @bot.event
     async def on_ready(self):
         watcher_config = self._get_watcher_config()
-        watcher = Watcher(bot=self.bot, path='cogs', **watcher_config)
-        await watcher.start()  
+        self.watcher = Watcher(bot=self.bot, path='cogs', **watcher_config)
+        await self.watcher.start()  
         await self.bot.sync_commands()
 
         print("--------------------------------------")
