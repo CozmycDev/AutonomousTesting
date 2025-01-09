@@ -8,13 +8,14 @@ class FileFormatter:
                 json.dump({"content": content}, file)
         except Exception as e:
             print(f"Error saving to file: {e}")
-
+    
     @staticmethod
     def format_file_from_json(file_name: str):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
                 return data["content"]
+        except FileNotFoundError:
+            print(f"No JSON file found at {file_name}")
         except Exception as e:
             print(f"Error loading from file: {e}")
-#

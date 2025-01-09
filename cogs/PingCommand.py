@@ -12,7 +12,6 @@ class PingCommand(commands.Cog):
     async def test_command(self, ctx: discord.ApplicationContext, test_string: Option(str, 'The string to say')):
         await ctx.defer()
         return f"User said {test_string}"
-
         
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(PingCommand(bot))

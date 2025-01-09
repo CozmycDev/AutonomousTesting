@@ -11,36 +11,37 @@ class File:
     def from_path(cls, filename: str) -> 'File':
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
-        file_extension = os.path.splitext(filename)[1]
-        return cls.from_extension(filename, file_extension)
+        return cls.from_extension(os.path.splitext(filename)[1])
 
     @classmethod
-    def from_extension(cls, filename: str, extension: str) -> 'File':
+    def from_extension(cls, extension: str) -> 'File':
         try:
             if extension == '.json':
-                return cls.from_json(filename)
+                return cls.from_json()
             elif extension == '.txt':
-                return cls.from_text_file(filename)
+                return cls.from_text_file()
             else:
                 raise ValueError(f"Unsupported file type: {extension}")
         except Exception as e:
-            raise ValueError(f"Failed to load file {filename}: {str(e)}")
+            raise ValueError(f"Failed to load file: {str(e)}")
 
     @classmethod
-    def from_json(cls, filename: str) -> 'File':
-        with open(filename, 'r') as file:
-            data = json.load(file)
-            return cls(name=data['name'], content=data.get('content', ''))
-
-    @classmethod
-    def from_text_file(cls, filename: str) -> 'File':
+    def from_json(cls) -> 'File':
         try:
-            with open(filename, 'r') as file:
-                file_content = file.read()
-            return cls(name=os.path.basename(filename), content=file_content)
-
+            with open("data.json", "r") as file:
+                data = json.load(file)
+                return cls(name=data['name'], content=data.get('content', ''))
         except Exception as e:
-            raise ValueError(f"Failed to load file {filename}: {str(e)}")
+            raise ValueError(f"Failed to load file: {str(e)}")
+
+    @classmethod
+    def from_text_file(cls) -> 'File':
+        try:
+            with open("data.txt", "r") as file:
+                file_content = file.read()
+            return cls(name=os.path.basename("data.txt"), content=file_content)
+        except Exception as e:
+            raise ValueError(f"Failed to load file: {str(e)}")
 
     def save_to_json(self, filename: str):
         data = {'name': self._name, 'content': self._content}
