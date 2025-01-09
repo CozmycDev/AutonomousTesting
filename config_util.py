@@ -1,62 +1,51 @@
-import os
-import json
-import io
-import traceback
+def load_dotenv():
+    import os
+    import json
+    import io
+    import traceback
 
-load_dotenv()
+    os.environ.clear()
+    with open(".env", "r") as env_file:
+        for line in env_file.readlines():
+            key, value = line.strip().split("=")
+            os.environ[key] = value
 
 
 def load_environment_variables():
-    env_vars = {key: value for key, value in os.environ.items()}
-    return env_vars
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    return dict(os.environ)
 
 
 ENVIRONMENT_VARIABLES = load_environment_variables()
 GLOBAL_CONFIG = {}
 
+class FileSection:
+    def __init__(self, name):
+        self.name = name
 
-def load():
-    global GLOBAL_CONFIG
+    @classmethod
+    def create(cls, config, key):
+        section = None
+        parts = key.split('.')
+        for part in parts:
+            if section is None:
+                section = cls(name=part)
+            else:
+                section = getattr(section, f"_{part}")
+        
+        return section
 
-    try:
-        with open("bot_config.json", "r") as config_file:
-            config = json.load(config_file)
+    @property
+    def save_to_json(self, config):
+        return f'"{self.name}":{{{{"json": self.value.save_to_json()}}}}'
 
-        for section, values in config.items():
-            for key, value in values.items():
-                GLOBAL_CONFIG[f"{section}.{key}"] = value
+    def save_to_file(self, file_name):
+        import json
+        with open(file_name, "w") as file:
+            json.dump({self.name: {key: value for key, value in self.items()}}, file)
 
-        for key, value in ENVIRONMENT_VARIABLES.items():
-            if value:
-                GLOBAL_CONFIG[key] = value
-
-    except FileNotFoundError:
-        print("Configuration file not found. Please ensure 'bot_config.json' exists.")
-    except json.JSONDecodeError:
-        print("Error decoding JSON from the configuration file.")
-    except Exception as e:
-        print(f"An unexpected error occurred while loading the configuration: {e}")
-        traceback.print_exc()
-
-
-def save():
-    global GLOBAL_CONFIG
-
-    try:
-        config = {}
-
-        for key, value in GLOBAL_CONFIG.items():
-            section, sub_key = key.split('.', 1)
-            if section not in config:
-                config[section] = {}
-            config[section][sub_key] = value
-
-        json_config = json.dumps(config, indent=4)
-        with io.open("bot_config.json", 'w', encoding='utf-8') as config_file:
-            config_file.write(json_config)
-
-    except IOError:
-        print("An error occurred while writing to the configuration file.")
-    except Exception as e:
-        print(f"An unexpected error occurred while saving the configuration: {e}")
-        traceback.print_exc()
+    @property
+    def items(self):
+        return {key: value for section in [self] for key, value in getattr(section, f"_{name}", {}).items() if name}
