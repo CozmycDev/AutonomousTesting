@@ -1,9 +1,7 @@
-from typing import Optional
+from discord import app_commands
 import asyncio
 import traceback
-import discord
-from cogwatch import Watcher
-from config_util import load, GLOBAL_CONFIG
+from typing import Optional
 
 class Bot:
     def __init__(self):

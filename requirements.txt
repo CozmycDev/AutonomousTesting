@@ -50,9 +50,19 @@ class FileTypeManager:
         return self.file_types.get(extension, None)
 
 class File:
-    def __init__(self, name: str, content: str):
-        self._name = name
-        self._content = content
+    def __init__(self, name: str, content: Optional[str] = None):
+        if not isinstance(name, str):
+            raise TypeError("File name must be a string")
+        if content is None:
+            try:
+                with open(os.path.join("data", f"{name}.txt"), "r") as file:
+                    self._content = file.read()
+                self._name = pathlib.Path(f"data/{name}.txt").name
+            except FileNotFoundError:
+                raise ValueError(f"File {name} not found")
+        else:
+            self._name = name
+            self._content = content
 
     @classmethod
     def from_path(cls, filename: str) -> 'File':

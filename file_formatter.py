@@ -1,13 +1,24 @@
 from json import load, dump
 import os
+from typing import Optional
 
 class FileFormatter:
     @staticmethod
-    def format_file(file_name: str, content: str = None):
+    def _get_or_create_file(file_name: str):
+        try:
+            return open(file_name, "r")
+        except FileNotFoundError:
+            with open(file_name, "w") as file:
+                pass
+            return open(file_name)
+
+    @staticmethod
+    def format_file(file_name: str, content: Optional[str] = None):
         if not content:
             raise ValueError("Content is required")
+        
         try:
-            with open(file_name, "w") as file:
+            with FileFormatter._get_or_create_file(file_name) as file:
                 data = {"content": content}
                 dump(data, file)
         except Exception as e:

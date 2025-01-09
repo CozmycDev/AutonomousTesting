@@ -8,14 +8,10 @@ class File(BaseFileSection):
         super().__init__("File")
         self._file_name = file_name
         self.save_path = save_path
-        if content:
-            self.data = {"content": content}
-        else:
-            self.data = {}
 
     @property
     def data(self) -> Dict[str, Any]:
-        return self._data or {}
+        return {"content": self._data} if self._data else {}
 
     @data.setter
     def data(self, value: Dict[str, Any]):
@@ -44,3 +40,6 @@ class File(BaseFileSection):
 
     def save_to_json(self) -> str:
         return json.dumps(self.data)
+
+
+#
