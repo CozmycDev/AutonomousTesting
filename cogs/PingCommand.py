@@ -9,7 +9,7 @@ class PingCommand(commands.Cog):
         self.bot = bot
         
     @slash_command(name='ping', description='Example slash command.')
-    async def test_command(self, ctx: discord.ApplicationContext, test_string: str):
+    async def test_command(self, ctx: discord.ApplicationContext, test_string: Option(str, 'The string to say')):
         await ctx.defer()
         return f"User said {test_string}"
 

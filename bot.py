@@ -7,27 +7,27 @@ import traceback
 
 class Bot:
     def __init__(self):
-        self.intents = discord.Intents.default()
-        self.bot = discord.Bot(intents=self.intents)
+        self._intents = discord.Intents.default()
+        self.bot = discord.Bot(intents=self._intents)
 
     @property
     async def watcher_config(self) -> dict:
-        return self._get_watcher_config()
+        return await self._get_watcher_config()
 
     @staticmethod
     async def run(config_util: Optional[dict] = None) -> None:
         config_util = config_util or {}
         await config_util.load()
-        bot = Bot()
+        bot = self()
         await bot.run(GLOBAL_CONFIG['DISCORD_TOKEN'])
 
     @staticmethod
     async def start_watcher() -> None:
-        bot = Bot()
+        bot = self()
         await bot.watcher.start()
 
     async def __aenter__(self) -> None:
-        self.watcher_config = self._get_watcher_config()
+        self.watcher_config = await self._get_watcher_config()
         self.watcher = Watcher(bot=self.bot, path='cogs', **self.watcher_config)
         await self.watcher.start()  
         await self.bot.sync_commands()
@@ -38,6 +38,6 @@ class Bot:
         self.watcher.stop()
         await self.bot.close()
 
-if __name__ == "__main__":
-    loop = asyncio.GetEventLoop()
-    loop.create_task(Bot.run())
+    @classmethod
+    def bot(cls) -> 'Bot':
+        return cls()

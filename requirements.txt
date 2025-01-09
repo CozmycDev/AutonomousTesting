@@ -8,17 +8,25 @@ class File:
         self._content = content
 
     @classmethod
-    def from_json(cls, filename: str) -> 'File':
+    def from_path(cls, filename: str) -> 'File':
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
+        file_extension = os.path.splitext(filename)[1]
+        if file_extension == '.json':
+            return cls.from_json(filename)
+        elif file_extension == '.txt':
+            return cls.from_text_file(filename)
+        else:
+            raise ValueError(f"Unsupported file type: {file_extension}")
+
+    @classmethod
+    def from_json(cls, filename: str) -> 'File':
         with open(filename, 'r') as file:
             data = json.load(file)
             return cls(name=data['name'], content=data.get('content', ''))
 
     @classmethod
     def from_text_file(cls, filename: str) -> 'File':
-        if not os.path.exists(filename):
-            raise FileNotFoundError(f"File {filename} does not exist")
         try:
             with open(filename, 'r') as file:
                 file_content = file.read()
@@ -26,36 +34,6 @@ class File:
 
         except Exception as e:
             raise ValueError(f"Failed to load file {filename}: {str(e)}")
-
-    @classmethod
-    def from_json_file(cls, filename: str) -> 'File':
-        try:
-            with open(filename, 'r') as file:
-                data = json.load(file)
-                return cls(name=data['name'], content=data.get('content', ''))
-
-        except FileNotFoundError:
-            raise ValueError(f"Failed to load JSON file {filename}")
-        except json.JSONDecodeError:
-            raise ValueError(f"Failed to parse JSON file {filename}")
-
-    @classmethod
-    def from_file(cls, filename: str) -> 'File':
-        try:
-            with open(filename, 'r') as file:
-                file_content = file.read()
-                return cls(name=filename, content=file_content)
-
-        except FileNotFoundError:
-            raise ValueError(f"Failed to load file {filename}")
-
-    @classmethod
-    def from_data(cls, data: dict) -> 'File':
-        if not data.get('name'):
-            raise ValueError("Data is missing name")
-        filename = data['name']
-        file_content = data.get('content', '')
-        return cls(filename=filename, content=file_content)
 
     def save_to_json(self, filename: str):
         data = {'name': self._name, 'content': self._content}

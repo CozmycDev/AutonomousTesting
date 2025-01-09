@@ -1,24 +1,10 @@
-{
-  "file": {
-    "version": "1.0.0",
-    "api_version": "v1",
-    "description": "",
-    "author": "Your Name",
-    "keywords": [],
-    "dependencies": [
-      "./main.json"
-    ],
-    "enhancements": [
-      "Code organization and reformatting for better readability"
-    ],
-    "class": {
-      "File": {
-        "import": "from main import MainClass",
-        "instantiate": "MainClass()",
-        "methods": [
-          "update_file",
-          "get_description"
-        ]
-      }
-    }
-  }
+from main import MainClass
+class File:
+    def __init__(self):
+        self.main_class = MainClass()
+    
+    def update_file(self):
+        return self.main_class.update_file()
+    
+    def get_description(self):
+        return self.main_class.get_description()
