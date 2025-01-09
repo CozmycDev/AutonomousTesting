@@ -16,13 +16,13 @@ class File:
             return cls(name=data['name'], content=data.get('content', ''))
 
     @classmethod
-    def from_text_file(cls, filename: str, content: Optional[str] = None) -> 'File':
+    def from_text_file(cls, filename: str) -> 'File':
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
         try:
             with open(filename, 'r') as file:
                 file_content = file.read()
-            return cls(name=filename, content=file_content) if content is None else cls(name=filename, content=content)
+            return cls(name=filename, content=file_content)
 
         except Exception as e:
             raise ValueError(f"Failed to load file {filename}: {str(e)}")
@@ -49,6 +49,14 @@ class File:
         except FileNotFoundError:
             raise ValueError(f"Failed to load file {filename}")
 
+    @classmethod
+    def from_data(cls, data: dict) -> 'File':
+        if not data.get('name'):
+            raise ValueError("Data is missing name")
+        filename = data['name']
+        file_content = data.get('content', '')
+        return cls(filename=filename, content=file_content)
+
     def save_to_json(self, filename: str):
         data = {'name': self._name, 'content': self._content}
         with open(filename, 'w') as file:
@@ -56,15 +64,3 @@ class File:
 
     def __str__(self) -> str:
         return f"{self._name}: {self._content}"
-
-    @classmethod
-    def from_json_data(cls, data: dict) -> 'File':
-        return cls(name=data['name'], content=data.get('content', ''))
-
-    @classmethod
-    def from_file_data(cls, data: dict) -> 'File':
-        if not data:
-            raise ValueError("Data is empty")
-        filename = data.get('filename')
-        file_content = data.get('file_content', '')
-        return cls(filename=filename, content=file_content)

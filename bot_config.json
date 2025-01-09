@@ -3,13 +3,22 @@
     "version": "1.0.0",
     "api_version": "v1",
     "description": "",
-    "author": "",
+    "author": "Your Name",
     "keywords": [],
     "dependencies": [
       "./main.json"
     ],
     "enhancements": [
       "Code organization and reformatting for better readability"
-    ]
+    ],
+    "class": {
+      "File": {
+        "import": "from main import MainClass",
+        "instantiate": "MainClass()",
+        "methods": [
+          "update_file",
+          "get_description"
+        ]
+      }
+    }
   }
-}

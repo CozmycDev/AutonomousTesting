@@ -2,6 +2,8 @@ import discord
 from cogwatch import Watcher
 from config_util import load, GLOBAL_CONFIG
 from typing import Optional
+import asyncio
+import traceback
 
 class Bot:
     def __init__(self):
@@ -37,6 +39,5 @@ class Bot:
         await self.bot.close()
 
 if __name__ == "__main__":
-    import asyncio
     loop = asyncio.GetEventLoop()
     loop.create_task(Bot.run())
