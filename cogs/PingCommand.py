@@ -20,3 +20,6 @@ class PingCommand(commands.Cog):
 class PingError(Exception):
     """Custom exception for ping errors."""
     pass
+
+# Importing logging module configuration from a separate file to keep the main file clean and organized
+import logging_config  #

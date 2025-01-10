@@ -19,6 +19,7 @@ class File(BaseFileSection):
             raise ValueError("Data must be a dictionary")
         try:
             self._validate_data(value)
+            self._load_data(value)
         except ValueError as e:
             raise ValueError(f"Invalid JSON format: {e}")
         self._data = value
@@ -83,3 +84,5 @@ class File(BaseFileSection):
     @staticmethod
     def _validate_data(value: Dict[str, Any]) -> bool:
         return all(v is not None for v in value.values())
+        
+END_FILE

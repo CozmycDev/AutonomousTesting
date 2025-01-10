@@ -1,31 +1,46 @@
-def log_file(filename):
-    try:
-        with open(filename, 'a') as file:
-            file.write('\n')
-    except FileNotFoundError:
-        print(f"Failed to create {filename}")
+import logging
+from typing import Dict
 
-def set_default_log_level():
-    return "INFO"
+class FileHandler(logging.Handler):
+    def __init__(self, filename: str):
+        super().__init__()
+        self.filename = filename
+
+    def emit(self, record) -> None:
+        message = self.format(record)
+        with open(self.filename, 'a') as log_file:
+            log_file.write(message + '\n')
+
+def configure_logging(filename: str, log_level: str) -> logging.Handler:
+    handler = FileHandler(filename)
+
+    # Configure the logging module with the chosen log level
+    logging.basicConfig(level=get_log_level(log_level))
+
+    return handler
+
+def get_log_level(log_level: str) -> int:
+    level_map = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL
+    }
+
+    if log_level in level_map:
+        return level_map[log_level]
+    else:
+        raise ValueError(f"Invalid log level: {log_level}")
 
 # Set the default logging level
 log_level = set_default_log_level()
 
 # Configure the logging module with the chosen log level
-import logging
-logging.basicConfig(level=log_level)
+handler = configure_logging('log.txt', log_level)
 
-# Create a custom logging handler for file logging
-class FileHandler(logging.Handler):
-    def __init__(self, filename):
-        super().__init__()
-        self.filename = filename
+# Create a logger instance
+logger = logging.getLogger(__name__)
 
-    def emit(self, record):
-        message = self.format(record)
-        with open(self.filename, 'a') as log_file:
-            log_file.write(message + '\n')
-
-# Create a file handler and add it to the logging module
-log_handler = FileHandler('log.txt')
-logging.addHandler(log_handler)
+# Add the handler to the logger
+logger.addHandler(handler)

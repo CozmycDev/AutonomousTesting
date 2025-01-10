@@ -5,7 +5,6 @@ from typing import Optional
 import json
 import os
 
-
 @dataclass(frozen=True)
 class File:
     name: str
@@ -38,8 +37,8 @@ class File:
                                 content=data.get('content'),
                                 file_path=Path(filename)
                             )
-                        except KeyError:
-                            raise ValueError("Invalid JSON data in file")
+                        except KeyError as e:
+                            raise ValueError("Invalid JSON data in file") from e
             except FileNotFoundError:
                 raise ValueError(f"File not found: {filename}")
             except Exception as e:
@@ -47,21 +46,28 @@ class File:
 
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None) -> 'File':
-        return cls(
-            name=name,
-            content=None if Path(name).expanduser() == Path("data.json") else json.load(open(f"data/{extension or ''}", "r")),
-            file_path=Path(filename)
-        )
+        try:
+            data = json.load(open(f"data/{extension or ''}", "r"))
+            return cls(
+                name=name,
+                content=data.get('content'),
+                file_path=Path(filename)
+            )
+        except FileNotFoundError:
+            raise ValueError(f"File not found: {name}")
+        except Exception as e:
+            raise ValueError(f"Failed to load file: {str(e)}")
 
     @classmethod
     def update_content(cls, filename: str) -> 'File':
-        with open(f"data/{filename}.txt", "r") as f:
+        original_filename = f"data/{filename}.txt"
+        with open(original_filename, "r") as f:
             original_content = f.read()
         try:
-            cls.write_to_json(f"data/{filename}.txt", os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}")))
-        except FileNotFoundError:
-            raise ValueError(f"File not found: {filename}")
-        return cls.from_file(Path(filename).stem)
+            cls.write_to_json(f"data/{filename}")
+        except Exception as e:
+            raise ValueError(f"Failed to write JSON file: {str(e)}")
+        return cls.from_name(Path(filename).stem)
 
     @classmethod
     def _read_from_file(cls, filename: str) -> Optional['File']:

@@ -2,6 +2,7 @@ from typing import Optional
 import logging
 from .database_connection import DatabaseConnection
 from .api_client import APIClient
+import asyncio
 
 class File:
     def __init__(self):
@@ -18,9 +19,9 @@ class File:
                 self.logger.error(e)
                 return False
 
-    class DescriptionUpdater(Updater):
-        async def update_description(self, database_info: dict) -> Optional[str]:
-            db_description = (await self.database_connection.read_from_database())['description']
+    class DescriptionUpdater:
+        def update_description(self, database_info: dict) -> Optional[str]:
+            db_description = (self.database_connection.read_from_database())['description']
             if 'specific_value' not in db_description.lower():
                 return db_description
             else:

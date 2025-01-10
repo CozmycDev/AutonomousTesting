@@ -14,27 +14,19 @@ class File(ABC):
     def read_bytes(self) -> bytes:
         pass
 
-    def __str__(self):
-        return f"File(size={self.get_size()}, content=None)"
-
-class PseudoFile(File):
-    def __init__(self, size: int, content: str = "") -> None:
-        self._size = size
-        self._content = content
-
     @property
     def size(self) -> int:
-        return self._size
+        return self.get_size()
+
+    @size.setter
+    def size(self, value: int) -> None:
+        if not isinstance(value, int):
+            raise TypeError("Size must be an integer.")
+        self._size = value
 
     @property
     def content(self) -> str:
-        return self._content
+        return ""
 
-    def get_size(self) -> int:
-        return self._size
-
-    def write_bytes(self, data: bytes) -> None:
-        raise NotImplementedError("This is a pseudo file and does not support writing")
-
-    def read_bytes(self) -> bytes:
-        raise NotImplementedError("This method should be overridden in child classes")
+    def __str__(self):
+        return f"File(size={self.size}, content=None)"
