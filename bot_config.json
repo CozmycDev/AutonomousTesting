@@ -8,16 +8,19 @@ class File:
         self.api_client = APIClient()
 
     class _Updater:
-        async def update_content(self) -> bool:
-            updated_content = await self._generate_updated_content()
+        async def update_content(self, db_data: str, api_data: str) -> bool:
+            updated_content = f"{db_data} {api_data}"
+            return await self._write_to_file(updated_content)
+
+        async def _write_to_file(self, content: str) -> bool:
             with open("file.txt", "w") as f:
-                f.write(updated_content)
+                f.write(content)
             return True
 
         async def _generate_updated_content(self) -> str:
             db_data = await self.database_connection.read_from_database()
             api_data = await self.api_client.get_data_from_api()
-            return f"{db_data['description']} {api_data}"
+            return self.update_content(db_data, api_data)
 
     class Updater(File, metaclass=type):
         pass
@@ -27,7 +30,7 @@ class File:
 
     def get_description(self) -> Optional[str]:
         description_updater = self.DescriptionUpdater()
-        updated_description = description_updater.update_description()
+        updated_description = await description_updater.update_description()
         return updated_description
 
     async def update_file(self) -> bool:

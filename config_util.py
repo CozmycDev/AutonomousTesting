@@ -4,12 +4,10 @@ from BaseFileSection import BaseFileSection  # Import from the relevant file
 
 
 class File(BaseFileSection):
-    def __init__(self, file_name: str, save_path: str, content: str = None):
-        self._file_data = {"file_name": file_name, "save_path": save_path}
+    def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None):
+        self.file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
-        self._data: Dict[str, Any] = {}
-        if content:
-            self.data = content
+        self.data = content or {}
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -29,19 +27,19 @@ class File(BaseFileSection):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                cls._file_data["data"] = {k: v for k, v in data.get("content", {}).items() if v is not None}
+                cls.file_data["data"] = {k: v for k, v in data.get("content", {}).items() if v is not None}
         except Exception as e:
             print(f"Error loading from file: {e}")
 
     def save_to_file(self):
         try:
             with open(self.save_path, "w") as file:
-                json.dump({**self._file_data, **{"content": self._data}}, file)
+                json.dump({**self.file_data, **{"content": self.data}}, file)
         except Exception as e:
             print(f"Error saving to file: {e}")
 
     @classmethod
-    def validate_file_content(cls, file_name: str, content: str) -> None:
+    def validate_file_content(cls, file_name: str, content: Dict[str, Any]) -> None:
         cls.load_from_file(file_name)
         if content != cls.get_value():
             raise ValueError("File content has changed")
@@ -72,7 +70,7 @@ class File(BaseFileSection):
             return ""
 
     @classmethod
-    def update_file_content(cls, file_name: str, content: str) -> None:
+    def update_file_content(cls, file_name: str, content: Dict[str, Any]) -> None:
         try:
             with open(file_name, "w") as file:
                 json.dump({"content": content}, file)

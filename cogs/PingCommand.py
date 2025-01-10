@@ -1,7 +1,6 @@
 from discord import app_commands
 from discord.ext import commands
 
-
 class PingCommand(commands.Cog):
     """Ping command cog."""
 
@@ -13,3 +12,10 @@ class PingCommand(commands.Cog):
         """Test command that returns the input string."""
         await ctx.defer()
         return f"User said {test_string or ''}"
+
+    class Commands(commands.Cog):
+        pass
+
+class PingError(Exception):
+    """Custom exception for ping errors."""
+    pass
