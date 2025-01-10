@@ -7,42 +7,39 @@ import json
 import importlib.util
 
 class File:
-    def __init__(self, bot: object, config_path: Path = Path('config.json')):
+    def __init__(self, bot: object, config_path: Path):
         self.bot = bot
         self.config_path = config_path
         self._cogs: list[Cog] = []
 
         try:
             with open(self.config_path, 'r') as config_file:
-                self.load_config_from_json(config_file)
+                self._load_config_from_json(config_file)
         except (FileNotFoundError, json.JSONDecodeError):
             logging.warning(f"Skipping invalid JSON in {self.config_path}")
 
     async def load_cogs(self) -> None:
         await self.load_config()
         
-        cog_data = self._config.get('filename_pattern', [])
+        filename_pattern = self._config.get('filename_pattern', [])
         self._cogs.clear()
 
         for file in self.path.glob('*'):
             if file.is_file() and file.suffix == '.py':
-                self._cogs.append(self.import_cog(file))
+                cog_module = self.import_cog(file)
+                self._cogs.append(cog_module)
 
         self.bot.add_cogs(self._cogs)
 
     @property
     def config(self) -> Dict[str, Any]:
-        return {**self._config}
-
-    @config.setter
-    def config(self, value: Dict[str, Any]) -> None:
-        self._config = value
+        return self._config
 
     async def load_config(self) -> None:
         if not self._config:
             try:
                 with open(str(self.config_path), 'r') as config_file:
-                    self.load_config_from_json(config_file)
+                    await self._load_config_from_json(config_file)
             except (FileNotFoundError, json.JSONDecodeError):
                 logging.warning(f"Skipping invalid JSON in {self.config_path}")
         
@@ -57,6 +54,6 @@ class File:
         spec.loader.exec_module(cog_module)
         return type('Cog', (Cog,), cog_module.__dict__)
 
-    def load_config_from_json(self, config_file: Path) -> None:
+    def _load_config_from_json(self, config_file: Path) -> None:
         self._config = json.load(config_file)
         self._cogs.clear()

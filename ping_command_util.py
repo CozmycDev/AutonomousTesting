@@ -36,6 +36,23 @@ class File(ABC):
     def exists(self) -> bool:
         return os.path.exists(self.file_name)
 
+    @property
+    def file_name(self) -> str:
+        return self._file_name
+
+    @file_name.setter
+    def file_name(self, value: str) -> None:
+        self._validate_file_name()
+        self._file_name = value
+
+    @property
+    def is_empty_content(self) -> bool:
+        return not self.content or len(self.content.strip()) == 0
+
+    @property
+    def absolute_path(self) -> str:
+        return os.path.abspath(self.file_name)
+
     def __str__(self):
         return f"File(size={self.size}, content=None)"
 
@@ -70,10 +87,6 @@ class File(ABC):
         except Exception as e:
             raise Exception(f"Failed to write to file {self._file_name}: {str(e)}")
 
-    @property
-    def is_empty_content(self):
-        return self.content and len(self.content.strip()) == 0
-
     def save(self) -> None:
         if not os.path.exists(os.path.dirname(self.file_name)):
             os.makedirs(os.path.dirname(self.file_name))
@@ -94,3 +107,9 @@ class File(ABC):
             raise Exception(f"File {self._file_name} not found")
         except Exception as e:
             raise Exception(f"Failed to load file {self._file_name}: {str(e)}")
+
+    def delete(self) -> None:
+        try:
+            os.remove(self.file_name)
+        except OSError as e:
+            raise Exception(f"Failed to delete file {self._file_name}: {str(e)}")

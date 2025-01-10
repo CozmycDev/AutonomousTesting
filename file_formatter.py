@@ -2,6 +2,7 @@ from typing import Optional, Dict
 import threading
 import os
 from pathlib import Path
+import logging
 
 class File:
     def __init__(self) -> None:
@@ -11,6 +12,7 @@ class File:
             'path': ''
         }
         self._lock = threading.Lock()
+        self._logger = logging.getLogger(__name__)
 
     def create(self, name: str, content: Optional[str] = None) -> None:
         if not name or not content:
@@ -24,7 +26,7 @@ class File:
         try:
             file_path.write_text(self._config['content'])
         except Exception as e:
-            self.handle_error(e)
+            self._handle_error(e)
 
     def update_file(self, new_name: str, content: Optional[str] = None) -> None:
         if not content and not new_name:
@@ -34,13 +36,13 @@ class File:
         try:
             file_path.write_text(content if content else self._config['content'])
         except Exception as e:
-            self.handle_error(e)
+            self._handle_error(e)
 
     def delete_file(self) -> None:
         try:
             os.remove(Path(os.getcwd()) / self._config['name'])
         except Exception as e:
-            self.handle_error(e)
+            self._handle_error(e)
 
     def delete(self) -> None:
         if not self._config['name']:
@@ -77,8 +79,5 @@ class File:
         except Exception as e:
             print(f"Error saving configuration: {e}")
 
-    def handle_error(self, error: Exception) -> None:
-        import logging
-        logging.error(error)
-
-#
+    def _handle_error(self, error: Exception) -> None:
+        self._logger.error(error)

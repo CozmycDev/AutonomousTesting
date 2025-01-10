@@ -7,7 +7,9 @@ class File(BaseFileSection):
     def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None):
         self.file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
-        self.data = {}
+        if not isinstance(content, dict) or len(content) == 0:
+            raise ValueError("Content must be a non-empty dictionary")
+        self.data = json.loads(self._validate_json_string(json.dumps(content)))
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -15,11 +17,11 @@ class File(BaseFileSection):
 
     @data.setter
     def data(self, value: Dict[str, Any]):
-        if not isinstance(value, dict):
-            raise ValueError("Data must be a dictionary")
         try:
+            if not isinstance(value, dict):
+                raise ValueError("Data must be a dictionary")
             self.validate_data(value)
-            self.load_data(value)
+            json.dumps(value)
         except ValueError as e:
             raise ValueError(f"Invalid JSON format: {e}")
         self._data = value

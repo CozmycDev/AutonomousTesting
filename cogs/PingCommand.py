@@ -12,18 +12,4 @@ logging = {
             'level': 'DEBUG',
             'formatter': 'simple'
         },
-        'file': {
-            'class': 'logging.FileHandler',
-            'level': 'INFO',
-            'filename': 'app.log',
-            'formatter': 'simple'
-        }
-    },
-    'loggers': {
-        __name__: {
-            'level': 'INFO',
-            'propagate': True,
-            'handlers': ['console', 'file']
-        }
-    }
-}
+        # **

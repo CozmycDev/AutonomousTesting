@@ -1,25 +1,39 @@
-import logging
-from typing import Dict
+from logging import getLogger, getLevelName
+import os
+from pathlib import Path
 
 class FileHandler(logging.Handler):
     def __init__(self, filename: str, mode: str = 'a'):
         super().__init__()
-        self.filename = filename
+        self.filename = Path(filename)
         self.mode = mode
+        self.mode = self._check_mode(mode)
+
+    @staticmethod
+    def _check_mode(mode: str) -> str:
+        if not isinstance(mode, str):
+            raise ValueError("Mode must be a string.")
+        
+        if len(mode) < 1 or mode[-1] != 'b':
+            return 'a'
+        else:
+            # Add the file extension to prevent opening binary files
+            return mode[:-1] + '.txt'
 
     def emit(self, record) -> None:
         message = self.format(record)
-        with open(self.filename, self.mode + 'b') as log_file:  
+        with open(str(self.filename), self.mode) as log_file:  
             log_file.write(message.encode('utf-8') + b'\n')
 
 def configure_logging(filename: str, log_level: str, mode: str = 'a') -> logging.Handler:
     handler = FileHandler(filename, mode)
 
-    logger = logging.getLogger()
-    logger.setLevel(get_log_level(log_level))
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    logger = getLogger()
+    if not logger.hasHandlers():
+        logger.setLevel(get_log_level(log_level))
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        file_handler.setFormatter(formatter)
+        logger.addHandler(handler)
 
     return handler
 

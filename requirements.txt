@@ -20,13 +20,14 @@ class File:
             )
         elif Path(filename).suffix in ['.txt', '.json']:
             try:
-                data = json.load(open(Path("data.json"), 'r'))
-                content = os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}"))
-                return cls(
-                    name=Path("data.txt").name,
-                    content=content,
-                    file_path=None
-                )
+                with open(f"data/{filename}", 'rb') as f:
+                    content = f.read()
+                if filename != "data.txt":
+                    return cls(
+                        name=Path("data.txt").name,
+                        content=content,
+                        file_path=None
+                    )
             except FileNotFoundError:
                 raise ValueError("Invalid JSON data in file") from None
             except Exception as e:
@@ -50,8 +51,11 @@ class File:
     @classmethod
     def update_content(cls, filename: str) -> 'File':
         original_filename = f"data/{filename}.txt"
-        with open(original_filename, "r") as f:
-            content = f.read()
+        try:
+            with open(original_filename, "r") as f:
+                content = f.read()
+        except FileNotFoundError:
+            raise ValueError("File not found")
         try:
             cls.write_to_json(f"data/{filename}")
         except Exception as e:
