@@ -21,20 +21,12 @@ class File:
         elif Path(filename).suffix in ['.txt', '.json']:
             try:
                 data = json.load(open(Path("data.json"), 'r'))
-                if Path(filename).suffix == '.txt':
-                    content = os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}"))
-                    return cls(
-                        name=Path("data.txt").name,
-                        content=content,
-                        file_path=None
-                    )
-                else:
-                    data = json.load(open(f"data/{filename}", 'r'))
-                    return cls(
-                        name=data['name'],
-                        content=data.get('content'),
-                        file_path=Path(filename)
-                    )
+                content = os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}"))
+                return cls(
+                    name=Path("data.txt").name,
+                    content=content,
+                    file_path=None
+                )
             except FileNotFoundError:
                 raise ValueError("Invalid JSON data in file") from None
             except Exception as e:
@@ -43,7 +35,8 @@ class File:
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None) -> 'File':
         try:
-            data = json.load(open(f"data/{extension or ''}", "r"))
+            with open(f"data/{extension or ''}", "r") as f:
+                data = json.load(f)
             return cls(
                 name=name,
                 content=data.get('content'),

@@ -22,17 +22,31 @@ class File:
         await self.load_config()
         
         cog_data = self._config.get('filename_pattern', [])
+        self._cogs.clear()
 
-        if not self._config or not cog_data:
-            cogs_to_import = [file for file in self.path.glob('*') if file.is_file() and file.suffix == '.py']
-            self._cogs.extend(self.import_cog(file) for file in cogs_to_import)
-        
+        for file in self.path.glob('*'):
+            if file.is_file() and file.suffix == '.py':
+                self._cogs.append(self.import_cog(file))
+
         self.bot.add_cogs(self._cogs)
 
-    def load_config_from_json(self, config_file: Path) -> None:
-        with config_file.open('r') as json_file:
-            self._config = json.load(json_file)
-        self._cogs.clear()
+    @property
+    def config(self) -> Dict[str, Any]:
+        return {**self._config}
+
+    @config.setter
+    def config(self, value: Dict[str, Any]) -> None:
+        self._config = value
+
+    async def load_config(self) -> None:
+        if not self._config:
+            try:
+                with open(str(self.config_path), 'r') as config_file:
+                    self.load_config_from_json(config_file)
+            except (FileNotFoundError, json.JSONDecodeError):
+                logging.warning(f"Skipping invalid JSON in {self.config_path}")
+        
+        # TODO: Create separate method to load filename pattern configuration
 
     def import_cog(self, file: Path) -> Cog:
         spec = importlib.util.spec_from_file_location(
@@ -43,20 +57,6 @@ class File:
         spec.loader.exec_module(cog_module)
         return type('Cog', (Cog,), cog_module.__dict__)
 
-    def load_config(self) -> None:
-        if not self._config or len([file for file in self.path.glob('*') if file.is_file() and file.suffix == '.py']) != 1:
-            try:
-                with open(str(self.config_path), 'r') as config_file:
-                    self.load_config_from_json(config_file)
-            except (FileNotFoundError, json.JSONDecodeError):
-                logging.warning(f"Skipping invalid JSON in {self.config_path}")
-        if not self._config or len([file for file in self.path.glob('*') if file.is_file() and file.suffix == '.py']) != 1:
-            return
-    
-    @property
-    def config(self) -> Dict[str, Any]:
-        return self._config.copy()
-    
-    @config.setter
-    def config(self, value: Dict[str, Any]) -> None:
-        self._config = value
+    def load_config_from_json(self, config_file: Path) -> None:
+        self._config = json.load(config_file)
+        self._cogs.clear()

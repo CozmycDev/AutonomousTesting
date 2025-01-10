@@ -24,7 +24,7 @@ class File:
         try:
             file_path.write_text(self._config['content'])
         except Exception as e:
-            self._handle_error(e)
+            self.handle_error(e)
 
     def update_file(self, new_name: str, content: Optional[str] = None) -> None:
         if not content and not new_name:
@@ -34,13 +34,13 @@ class File:
         try:
             file_path.write_text(content if content else self._config['content'])
         except Exception as e:
-            self._handle_error(e)
+            self.handle_error(e)
 
     def delete_file(self) -> None:
         try:
             os.remove(Path(os.getcwd()) / self._config['name'])
         except Exception as e:
-            self._handle_error(e)
+            self.handle_error(e)
 
     def delete(self) -> None:
         if not self._config['name']:
@@ -63,7 +63,7 @@ class File:
         self._config['name'] = name
         try:
             file_path = Path(os.getcwd()) / name
-            file_path.write_text(self._config['content'])
+            file_path.write_text(json.dumps(self._config))
             return True
         except Exception as e:
             print(f"Error loading configuration: {e}")
@@ -73,12 +73,12 @@ class File:
         """Saves the current configuration to the file."""
         try:
             file_path = Path(os.getcwd()) / self._config['name']
-            file_path.write_text(self._config['content'])
+            file_path.write_text(json.dumps(self._config))
         except Exception as e:
             print(f"Error saving configuration: {e}")
 
     def handle_error(self, error: Exception) -> None:
-        # Handle and log errors in a more robust way
-        pass
+        import logging
+        logging.error(error)
 
 #

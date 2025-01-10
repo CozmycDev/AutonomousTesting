@@ -9,19 +9,17 @@ class FileHandler(logging.Handler):
 
     def emit(self, record) -> None:
         message = self.format(record)
-        with open(self.filename, self.mode + 'b') as log_file:  # Changed mode to include 'b' for binary writing
+        with open(self.filename, self.mode + 'b') as log_file:  
             log_file.write(message.encode('utf-8') + b'\n')
 
 def configure_logging(filename: str, log_level: str, mode: str = 'a') -> logging.Handler:
     handler = FileHandler(filename, mode)
 
-    # Configure the logging module with the chosen log level
     logger = logging.getLogger()
     logger.setLevel(get_log_level(log_level))
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    file_handler = logging.FileHandler(filename, mode + 'b')  # Changed mode to include 'b' for binary writing
     file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    logger.addHandler(handler)
 
     return handler
 
@@ -39,7 +37,6 @@ def get_log_level(log_level: str) -> int:
     else:
         raise ValueError(f"Invalid log level: {log_level}")
 
-# Set the default logging level
 def set_default_log_level() -> int:
     log_level = 'INFO'
     return get_log_level(log_level)

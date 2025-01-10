@@ -22,6 +22,20 @@ class File(ABC):
     def content(self) -> str:
         return self._content
 
+    @content.setter
+    def content(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Content must be a string.")
+        self._content = value
+
+    @property
+    def is_empty(self) -> bool:
+        return self.size == 0 or (self.content and len(self.content.strip()) == 0)
+
+    @property
+    def exists(self) -> bool:
+        return os.path.exists(self.file_name)
+
     def __str__(self):
         return f"File(size={self.size}, content=None)"
 
@@ -56,6 +70,27 @@ class File(ABC):
         except Exception as e:
             raise Exception(f"Failed to write to file {self._file_name}: {str(e)}")
 
-    def _validate_file_name(self):
-        if not os.path.exists(self._file_name):
-            raise Exception(f"File {self._file_name} does not exist")
+    @property
+    def is_empty_content(self):
+        return self.content and len(self.content.strip()) == 0
+
+    def save(self) -> None:
+        if not os.path.exists(os.path.dirname(self.file_name)):
+            os.makedirs(os.path.dirname(self.file_name))
+        try:
+            with open(self._file_name, 'wb') as file:
+                file.write(b'\0' * self.size)
+        except Exception as e:
+            raise Exception(f"Failed to save file {self._file_name}: {str(e)}")
+
+    def load(self) -> None:
+        if not os.path.exists(os.path.dirname(self.file_name)):
+            os.makedirs(os.path.dirname(self.file_name))
+        try:
+            with open(self._file_name, 'rb') as file:
+                self.size = os.path.getsize(file.name)
+                self.content = file.read().decode('utf-8')
+        except FileNotFoundError:
+            raise Exception(f"File {self._file_name} not found")
+        except Exception as e:
+            raise Exception(f"Failed to load file {self._file_name}: {str(e)}")
