@@ -8,6 +8,7 @@ class File(BaseFileSection):
         self.file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
         self._data = {}
+        self.validate_content(content)
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -15,8 +16,7 @@ class File(BaseFileSection):
 
     @data.setter
     def data(self, value: Dict[str, Any]):
-        if not isinstance(value, dict):
-            raise ValueError("Data must be a dictionary")
+        self.validate_content(value)
         self._data = {k: v for k, v in value.items() if v is not None}
 
     @classmethod
@@ -28,15 +28,23 @@ class File(BaseFileSection):
         except Exception as e:
             print(f"Error loading from file: {e}")
             return {}
+        return cls.get_data(file_name)
 
     @classmethod
     def _load_data(cls, data):
+        if not isinstance(data, dict) or len(data.get("content", {}).items()) == 0:
+            raise ValueError("Invalid JSON format")
         cls._data = {k: v for k, v in data.get("content", {}).items() if v is not None}
 
     @classmethod
     def validate_file_content(cls, file_name: str, expected_content: Dict[str, Any]) -> None:
         content = cls.load_from_file(file_name)
-        if content != expected_content:
+        try:
+            new_content = json.dumps(expected_content)
+        except Exception as e:
+            print(f"Error serializing expected content: {e}")
+            raise ValueError(f"Expected content is not a valid JSON format")
+        if content != new_content:
             raise ValueError(f"File content has changed to: {content}")
 
     @classmethod

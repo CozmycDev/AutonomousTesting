@@ -8,39 +8,49 @@ class File:
     EXIST_ERROR_MSG = f'File {path} already exists'
 
     def __init__(self):
-        self._config = {
+        self.config: dict = {
             'name': '',
             'content': '',
             'path': ''
         }
 
     def create(self, name: str, content: Optional[str] = None) -> None:
-        if not name:
-            raise ValueError('Name is required')
-        self.path = os.path.join(os.getcwd(), name)
-        if os.path.exists(self.path):
-            raise FileExistsError(self.EXIST_ERROR_MSG.format(path=self.path))
-        self._config['name'] = name
-        self._config['content'] = content or ''
-        with open(self.path, 'w') as file:
-            file.write(self._config['content'])
+        if not name or not content:
+            raise ValueError('Name and content are required')
+        self._create_file(name, content)
+        self.config['name'] = name
 
-    def update(self, name: Optional[str] = None, content: Optional[str] = None) -> None:
-        if not self.name:
-            raise ValueError('Name is required')
-        new_name = name or self.config.get('name')
-        path = os.path.join(self.path, new_name) if new_name else self.path
+    def _create_file(self, name: str, content: str) -> None:
+        path = os.path.join(os.getcwd(), name)
         if os.path.exists(path):
             raise FileExistsError(self.EXIST_ERROR_MSG.format(path=path))
-        self._config['name'] = new_name
-        self._config['content'] = content or ''
-        with open(self.path, 'w') as file:
-            file.write(self._config['content'])
+        with open(path, 'w') as file:
+            file.write(content)
+
+    def update(self, name: Optional[str] = None, content: Optional[str] = None) -> None:
+        if not self.config['name']:
+            raise ValueError('Name is required')
+        new_name = name or self.config.get('name')
+        path = os.path.join(os.getcwd(), new_name) if new_name else os.getcwd()
+        if os.path.exists(path):
+            raise FileExistsError(self.EXIST_ERROR_MSG.format(path=path))
+        self._update_file(path, new_name, content)
+        self.config['name'] = new_name
+
+    def _update_file(self, path: str, new_name: str, content: Optional[str] = None) -> None:
+        if not content and not new_name:
+            raise ValueError('Content or name is required')
+        with open(path, 'w') as file:
+            if new_name:
+                rel_path = os.path.join(os.path.dirname(path), new_name)
+            else:
+                rel_path = path
+            file.write(content)
 
     def delete(self) -> None:
-        if not self.path:
+        if not self.config['name']:
             raise ValueError('File does not exist')
-        os.remove(self.path)
+        os.remove(os.path.join(os.getcwd(), self.config['name']))
 
     @property
     def config(self) -> dict:

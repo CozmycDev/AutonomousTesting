@@ -1,5 +1,7 @@
 from typing import Optional
 import logging
+from .database_connection import DatabaseConnection
+from .api_client import APIClient
 
 class File:
     def __init__(self):
@@ -38,13 +40,3 @@ class File:
             return db_description
         else:
             return "default_description"
-
-    class DatabaseConnection:
-        async def read_from_database(self) -> dict:
-            # database connection logic here
-            pass
-
-    class APIClient:
-        async def get_data_from_api(self) -> str:
-            # API client logic here
-            pass

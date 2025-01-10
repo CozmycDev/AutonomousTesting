@@ -7,7 +7,7 @@ class PingCommand(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        logging.basicConfig(level=logging.INFO)
+        self.logger = logging.getLogger(__name__)
 
     @app_command(name='ping', description="The string to say", options=[Option("string", "The input string.", True)])
     async def ping(self, ctx: app_commands.Context, test_string: str = None):
