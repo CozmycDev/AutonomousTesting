@@ -1,11 +1,12 @@
-import discord
-import asyncio
 from pathlib import Path
+import asyncio
 from discord.ext.commands import app_commands
+from discord import Intents
+from typing import Optional, Any
 
 class Bot:
     def __init__(self):
-        self._intents = discord.Intents.default()
+        self._intents = Intents.default()
         self.bot = discord.Bot(intents=self._intents)
         self.watcher_config = None
         self.watcher = None
@@ -15,7 +16,7 @@ class Bot:
         return await self._get_watcher_config()
 
     @staticmethod
-    async def run(config_util: Optional[dict] = None) -> None:
+    async def run(config_util: Optional[Any] = None) -> None:
         config_util = config_util or {}
         await config_util.load()
         bot = Bot()

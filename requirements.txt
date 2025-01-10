@@ -16,7 +16,7 @@ class File:
     def from_path(cls, filename: str) -> 'File':
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
-
+        
         file_type_manager = FileTypeManager()
         file_extension = pathlib.Path(filename).suffix[1:]  # Extract file extension
 

@@ -3,39 +3,33 @@ import logging
 
 class File:
     def __init__(self):
-        self._logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)
         self.database_connection = DatabaseConnection()
         self.api_client = APIClient()
 
     class Updater:
-        def __init__(self, file: 'File'):
-            self.file = file
-        
         @staticmethod
-        def update_file(file: File) -> bool:
+        def update_file(file: 'File') -> bool:
             """Update file content by reading from database and API"""
             updated_content = self._generate_updated_content()
-            with open("file.txt", "w") as file_object:
-                file_object.write(updated_content)
+            with open("file.txt", "w") as f:
+                f.write(updated_content)
             return True
 
         @staticmethod
         def _generate_updated_content() -> str:
             """Generate updated content by combining database and API data"""
-            database_data = DatabaseConnection.read_from_database()
+            db_data = DatabaseConnection.read_from_database()
             api_data = APIClient.get_data_from_api()
-            return f"{database_data} {api_data}"
+            return f"{db_data['description']} {api_data}"
 
     class DescriptionUpdater:
-        def __init__(self, file: 'File'):
-            self.file = file
-        
         @staticmethod
-        def update_description(file: File) -> Optional[str]:
+        def update_description(file: 'File') -> Optional[str]:
             """Retrieve description, filtering out specific values from database"""
-            filtered_description = DatabaseConnection.read_from_database()['description']
-            if 'specific_value' not in filtered_description.lower():
-                return filtered_description
+            db_description = DatabaseConnection.read_from_database()['description']
+            if 'specific_value' not in db_description.lower():
+                return db_description
             else:
                 return "default_description"
 

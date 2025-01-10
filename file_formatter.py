@@ -4,8 +4,6 @@ from typing import Optional
 import logging
 import pathlib  # Import for Path class
 
-logger = logging.getLogger(__name__)
-
 class FileFormatter:
     def __init__(self, file_name: str):
         self.file_name = file_name
@@ -20,22 +18,22 @@ class FileFormatter:
             logger.error(f"Error creating file {e}")
             raise
 
-    def format_file(self, content: Optional[str] = None):
+    def format_file(self, content: Optional[str] = None) -> None:
         if not content:
             logger.error("Content is required")
             raise ValueError("Content is required")
 
         try:
-            with self._get_or_create_file() as file:
+            with self._get_or_create_file().open("w") as file:
                 data = {"content": content}
                 dump(data, str(file))
         except Exception as e:
             logger.error(f"Error saving to file: {e}")
 
-    def format_file_from_json(self):
+    def format_file_from_json(self) -> Optional[str]:
         try:
-            with open(str(self._get_or_create_file()), "r") as file:
-                return load(file).get("content", None)
+            with self._get_or_create_file().open("r") as file:
+                return load(str(file)).get("content", None)
         except FileNotFoundError:
             logger.error(f"No JSON file found at {self.file_name}")
         except Exception as e:

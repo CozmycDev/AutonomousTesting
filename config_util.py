@@ -24,7 +24,7 @@ class File(BaseFileSection):
         return self.data.get("content", "")
 
     @classmethod
-    def _load_from_file(cls, file_name: str):
+    def load_from_file(cls, file_name: str):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
@@ -39,24 +39,33 @@ class File(BaseFileSection):
         except Exception as e:
             print(f"Error saving to file: {e}")
 
-    def save_to_json(self) -> str:
-        return json.dumps({k: v for k, v in self.data.items() if v is not None})
-
-    @classmethod
-    def _validate_file_content(cls, file_name: str, content: str):
-        try:
-            with open(file_name, "r") as file:
-                existing_content = file.read()
-                if content != existing_content:
-                    cls._load_from_file(file_name)
-        except Exception as e:
-            print(f"Error validating file content: {e}")
-
     @staticmethod
     def validate_file_content(file_name: str, content: str) -> None:
-        File._validate_file_content(file_name, content)
+        File.load_from_file(file_name)
+        if content != File.get_value():
+            raise ValueError("File content has changed")
 
     @classmethod
     def create_new_file(cls, save_path: str):
         new_file = cls(save_path, "")
         return new_file
+
+    @staticmethod
+    def get_data(file_name: str) -> Dict[str, Any]:
+        try:
+            with open(file_name, "r") as file:
+                data = json.load(file)
+                return {k: v for k, v in data.get("content", {}).items() if v is not None}
+        except Exception as e:
+            print(f"Error getting data from file: {e}")
+            return {}
+
+    @classmethod
+    def get_file_value(cls, file_name: str) -> str:
+        try:
+            with open(file_name, "r") as file:
+                data = json.load(file)
+                return data.get("content", "")
+        except Exception as e:
+            print(f"Error getting file value: {e}")
+            return ""
