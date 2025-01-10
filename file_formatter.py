@@ -57,3 +57,28 @@ class File:
             raise ValueError('Name is required')
         with self._lock:
             self._config = value
+
+    def load_config(self, name: str) -> bool:
+        """Loads file configuration from the given name."""
+        self._config['name'] = name
+        try:
+            file_path = Path(os.getcwd()) / name
+            file_path.write_text(self._config['content'])
+            return True
+        except Exception as e:
+            print(f"Error loading configuration: {e}")
+            return False
+
+    def save_config(self) -> None:
+        """Saves the current configuration to the file."""
+        try:
+            file_path = Path(os.getcwd()) / self._config['name']
+            file_path.write_text(self._config['content'])
+        except Exception as e:
+            print(f"Error saving configuration: {e}")
+
+    def handle_error(self, error: Exception) -> None:
+        # Handle and log errors in a more robust way
+        pass
+
+#

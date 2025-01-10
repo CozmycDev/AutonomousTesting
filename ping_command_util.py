@@ -6,6 +6,7 @@ class File(ABC):
         self._file_name = file_name
         self._size = None
         self._content = None
+        self._validate_file_name()
 
     @property
     def size(self) -> int:
@@ -54,3 +55,7 @@ class File(ABC):
                 file.write(data)
         except Exception as e:
             raise Exception(f"Failed to write to file {self._file_name}: {str(e)}")
+
+    def _validate_file_name(self):
+        if not os.path.exists(self._file_name):
+            raise Exception(f"File {self._file_name} does not exist")

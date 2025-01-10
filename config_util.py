@@ -7,7 +7,7 @@ class File(BaseFileSection):
     def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None):
         self.file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
-        self._data = {}
+        self.data = {}
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -29,15 +29,14 @@ class File(BaseFileSection):
         with open(file_name, "r") as file:
             try:
                 data = json.load(file)
-                cls.load_data(data)
-                return cls._get_content(data.get("content", {}))
+                return cls.load_data(data.get("content", {}))
             except Exception as e:
                 print(f"Error loading from file: {e}")
                 return {}
 
     @classmethod
     def load_data(cls, data):
-        if not isinstance(data, dict) or len(data.get("content", {}).items()) == 0:
+        if not isinstance(data, dict) or len(data.items()) == 0:
             raise ValueError("Invalid JSON format")
         cls._data = {"content": data}
 
@@ -84,15 +83,7 @@ class File(BaseFileSection):
     @staticmethod
     def validate_data(value: Dict[str, Any]) -> bool:
         return all(v is not None for v in value.values())
-        
-    @staticmethod
-    def load_data(data):
-        if not isinstance(data, dict) or len(data.get("content", {}).items()) == 0:
-            raise ValueError("Invalid JSON format")
-        cls._data = {"content": data}
 
     @staticmethod
     def _get_content(content: Dict[str, Any]):
         return {k: v for k, v in content.items() if v is not None}
-        
-END_FILE

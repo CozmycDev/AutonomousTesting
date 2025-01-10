@@ -9,14 +9,19 @@ class FileHandler(logging.Handler):
 
     def emit(self, record) -> None:
         message = self.format(record)
-        with open(self.filename, self.mode) as log_file:
-            log_file.write(message + '\n')
+        with open(self.filename, self.mode + 'b') as log_file:  # Changed mode to include 'b' for binary writing
+            log_file.write(message.encode('utf-8') + b'\n')
 
 def configure_logging(filename: str, log_level: str, mode: str = 'a') -> logging.Handler:
     handler = FileHandler(filename, mode)
 
     # Configure the logging module with the chosen log level
-    logging.basicConfig(level=get_log_level(log_level))
+    logger = logging.getLogger()
+    logger.setLevel(get_log_level(log_level))
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler = logging.FileHandler(filename, mode + 'b')  # Changed mode to include 'b' for binary writing
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
 
     return handler
 
@@ -35,13 +40,9 @@ def get_log_level(log_level: str) -> int:
         raise ValueError(f"Invalid log level: {log_level}")
 
 # Set the default logging level
-log_level = set_default_log_level()
-
-# Configure the logging module with the chosen log level
-handler = configure_logging('log.txt', log_level)
+def set_default_log_level() -> int:
+    log_level = 'INFO'
+    return get_log_level(log_level)
 
 # Create a logger instance
-logger = logging.getLogger(__name__)
-
-# Add the handler to the logger
-logger.addHandler(handler)
+logger = configure_logging('log.txt', 'INFO')

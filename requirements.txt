@@ -8,8 +8,8 @@ import os
 
 @dataclass(frozen=True)
 class File:
-    name: str = None  # Initialize name as an attribute
-    content: Optional[str] = None  # Make content optional for consistency with existing code
+    name: str = None  
+    content: Optional[str] = None  
 
     @classmethod
     def from_file(cls, filename: str) -> 'File':
@@ -22,26 +22,23 @@ class File:
             try:
                 data = json.load(open(Path("data.json"), 'r'))
                 if Path(filename).suffix == '.txt':
+                    content = os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}"))
                     return cls(
                         name=Path("data.txt").name,
-                        content=os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}")),
+                        content=content,
                         file_path=None
                     )
                 else:
-                    with open(f"data/{filename}", 'r') as f:
-                        try:
-                            data = json.load(f)
-                            return cls(
-                                name=data['name'],
-                                content=data.get('content'),
-                                file_path=Path(filename)
-                            )
-                        except KeyError as e:
-                            raise ValueError("Invalid JSON data in file") from e
+                    data = json.load(open(f"data/{filename}", 'r'))
+                    return cls(
+                        name=data['name'],
+                        content=data.get('content'),
+                        file_path=Path(filename)
+                    )
             except FileNotFoundError:
-                raise ValueError(f"File not found: {filename}")
+                raise ValueError("Invalid JSON data in file") from None
             except Exception as e:
-                raise ValueError(f"Failed to load file: {str(e)}")
+                raise ValueError("Failed to load file: " + str(e)) from None
 
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None) -> 'File':
@@ -53,19 +50,19 @@ class File:
                 file_path=Path(filename)
             )
         except FileNotFoundError:
-            raise ValueError(f"File not found: {name}")
+            raise ValueError("Invalid JSON data in file") from None
         except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
+            raise ValueError("Failed to load file: " + str(e)) from None
 
     @classmethod
     def update_content(cls, filename: str) -> 'File':
         original_filename = f"data/{filename}.txt"
         with open(original_filename, "r") as f:
-            original_content = f.read()
+            content = f.read()
         try:
             cls.write_to_json(f"data/{filename}")
         except Exception as e:
-            raise ValueError(f"Failed to write JSON file: {str(e)}")
+            raise ValueError("Failed to write JSON file: " + str(e)) from None
         return cls.from_name(Path(filename).stem)
 
     @classmethod
@@ -78,9 +75,9 @@ class File:
                 else:
                     return cls.from_file(Path(filename).stem)
         except FileNotFoundError:
-            raise ValueError(f"File not found: {filename}")
+            raise ValueError("Invalid JSON data in file") from None
         except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
+            raise ValueError("Failed to load file: " + str(e)) from None
 
     @classmethod
     def write_to_json(cls, filename: str) -> 'File':
@@ -88,7 +85,7 @@ class File:
             with open(filename, "w") as f:
                 json.dump({'name': Path(filename).name, 'extension': '.json'}, f, indent=4)
         except Exception as e:
-            raise ValueError(f"Failed to write JSON file: {str(e)}")
+            raise ValueError("Failed to write JSON file: " + str(e)) from None
         return cls.from_name(Path(filename).name)
 
     @classmethod
@@ -96,4 +93,4 @@ class File:
         try:
             os.remove(f"data/{name}.txt")
         except FileNotFoundError:
-            raise ValueError(f"File not found: {name}")
+            raise ValueError("File not found") from None

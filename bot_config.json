@@ -3,6 +3,7 @@ import logging
 from .database_connection import DatabaseConnection
 from .api_client import APIClient
 import asyncio
+import os  # Import os for file operations
 
 class File:
     def __init__(self):
@@ -13,7 +14,7 @@ class File:
     class Updater:
         async def update_content(self, db_data: str, api_data: str) -> bool:
             try:
-                with open("file.txt", "w") as f:
+                with open(os.path.join("file.txt"), "w") as f:
                     return await f.write(f"{db_data} {api_data}")
             except Exception as e:
                 self.logger.error(e)
