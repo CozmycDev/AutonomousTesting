@@ -1,6 +1,6 @@
 from typing import Dict, Any
 import json
-from BaseFileSection import BaseFileSection  # Import from the relevant file
+from BaseFileSection import BaseFileSection
 
 
 class File(BaseFileSection):
@@ -14,7 +14,7 @@ class File(BaseFileSection):
             content_dict = json.loads(content_json)
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON format: {e}")
-        self.data = content_dict
+        self.data = self._normalize_data(content_dict)
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -28,7 +28,7 @@ class File(BaseFileSection):
             json.dumps(value)
         except TypeError as e:
             raise ValueError(f"Invalid JSON format: {e}")
-        self.validate_data(value)
+        self._validate_data(value)
         self._data = value
 
     @classmethod
@@ -88,9 +88,13 @@ class File(BaseFileSection):
             json.dump(new_content, file)
 
     @staticmethod
-    def validate_data(value: Dict[str, Any]) -> bool:
+    def _validate_data(value: Dict[str, Any]) -> bool:
         return all(v is not None for v in value.values())
 
     @staticmethod
     def _get_content(content: Dict[str, Any]):
         return {k: v for k, v in content.items() if v is not None}
+
+    @staticmethod
+    def _normalize_data(data: Dict[str, Any]) -> Dict[str, Any]:
+        return {key: value for key, value in data.items() if value is not None}

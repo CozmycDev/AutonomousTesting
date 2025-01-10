@@ -7,7 +7,7 @@ import json
 
 class File:
     def __init__(self) -> None:
-        self._config = {
+        self._config: Dict[str, str] = {
             'name': '',
             'content': '',
             'path': ''
@@ -80,8 +80,8 @@ class File:
         """Saves the current configuration to the file."""
         try:
             file_path = Path(os.getcwd()) / self._config['name']
-            if not file_path.exists():
-                raise FileExistsError(f'File {self._config["name"]} already exists')
+            if os.path.exists(file_path):
+                os.remove(file_path)
             with open(file_path, 'w') as f:
                 json.dump(self.config, f)
         except Exception as e:

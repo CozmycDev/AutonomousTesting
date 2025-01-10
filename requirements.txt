@@ -50,10 +50,7 @@ class File:
                 content = f.read()
         except FileNotFoundError:
             raise ValueError("File not found")
-        try:
-            cls.write_to_json(f"data/{filename}")
-        except Exception as e:
-            raise ValueError("Failed to write JSON file: " + str(e)) from None
+        cls.write_to_json(f"{filename}.json")
         return cls.from_name(Path(filename).stem)
 
     @classmethod
@@ -74,7 +71,7 @@ class File:
     def write_to_json(cls, filename: str) -> 'File':
         try:
             with open(f"data/{filename}.txt", "w") as f:
-                f.write(str(json.load({'name': Path(filename).name, 'extension': '.json'})['content']))
+                f.write(json.dumps({'name': Path(filename).name, 'content': json.load(f)})
         except Exception as e:
             raise ValueError("Failed to write JSON file: " + str(e)) from None
         return cls.from_name(Path(filename).name)

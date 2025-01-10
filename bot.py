@@ -12,11 +12,7 @@ class File:
         self.config_path = config_path
         self._cogs = []
 
-        try:
-            with open(str(self.config_path), 'r') as config_file:
-                self.load_config_from_json(config_file)
-        except (FileNotFoundError, json.JSONDecodeError):
-            logging.warning(f"Skipping invalid JSON in {self.config_path}")
+        self.load_config_from_json(config_path)
 
     async def load_cogs(self) -> None:
         await self.load_config()
