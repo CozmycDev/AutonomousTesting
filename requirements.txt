@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
-
+import json
+import os
 
 @dataclass(frozen=True)
 class File:
@@ -11,12 +12,10 @@ class File:
 
     @classmethod
     def from_path(cls, filename: str) -> 'File':
-        if not os.path.exists(filename):
+        if not Path(filename).exists():
             raise FileNotFoundError(f"File {filename} does not exist")
         
-        file_extension = Path(filename).suffix[1:]  # Extract file extension
-
-        return cls.from_extension(file_extension)
+        return cls.from_extension(Path(filename).suffix[1:])
 
     @classmethod
     def from_extension(cls, extension: str) -> 'File':
@@ -59,7 +58,7 @@ class File:
                     raise ValueError("Failed to load empty file")
                 
                 return cls.from_extension(Path(filename).suffix[1:])
-        except ValueError as e:
+        except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
     @classmethod
@@ -74,7 +73,4 @@ class File:
 
     @classmethod
     def delete_file(cls, name: str) -> None:
-        try:
-            os.remove(f"data/{name}.txt")
-        except Exception as e:
-            raise ValueError(f"Failed to delete file: {str(e)}")
+        os.remove(f"data/{name}.txt")

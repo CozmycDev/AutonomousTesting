@@ -7,76 +7,47 @@ class File:
         self.database_connection = DatabaseConnection()
         self.api_client = APIClient()
 
-    class Updater:
-        @staticmethod
-        async def update_file(self) -> bool:
-            """Update file content by reading from database and API"""
+    class _Updater:
+        async def update_content(self) -> bool:
             updated_content = await self._generate_updated_content()
             with open("file.txt", "w") as f:
                 f.write(updated_content)
             return True
 
-        @staticmethod
         async def _generate_updated_content(self) -> str:
-            """Generate updated content by combining database and API data"""
             db_data = await self.database_connection.read_from_database()
             api_data = await self.api_client.get_data_from_api()
             return f"{db_data['description']} {api_data}"
 
-    class DescriptionUpdater:
-        @staticmethod
-        async def update_description(self) -> Optional[str]:
-            """Retrieve description, filtering out specific values from database"""
-            db_description = (await self.database_connection.read_from_database())['description']
-            if 'specific_value' not in db_description.lower():
-                return db_description
-            else:
-                return "default_description"
+    class Updater(File, metaclass=type):
+        pass
+
+    class DescriptionUpdater(File, metaclass=type):
+        pass
 
     def get_description(self) -> Optional[str]:
-        """Retrieve description from database or API data, filtering out specific values"""
         description_updater = self.DescriptionUpdater()
         updated_description = description_updater.update_description()
         return updated_description
 
-    def __init_subclass__(cls, **kwargs):
-        cls.updater = cls.Updater
+    async def update_file(self) -> bool:
+        """Update file content by reading from database and API"""
+        await self._Updater().update_content()
 
-class DescriptionUpdaterMixin:
-    @staticmethod
-    async def update_description(self) -> Optional[str]:
-        """Retrieve description, filtering out specific values from database"""
+    @classmethod
+    async def update_description(cls, self: 'File') -> Optional[str]:
         db_description = (await self.database_connection.read_from_database())['description']
         if 'specific_value' not in db_description.lower():
             return db_description
         else:
             return "default_description"
 
-class UpdaterMixin:
-    @staticmethod
-    async def _generate_updated_content(self) -> str:
-        """Generate updated content by combining database and API data"""
-        db_data = await self.database_connection.read_from_database()
-        api_data = await self.api_client.get_data_from_api()
-        return f"{db_data['description']} {api_data}"
+    class DatabaseConnection:
+        async def read_from_database(self) -> dict:
+            # database connection logic here
+            pass
 
-from typing import Optional
-import logging
-
-class File:
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.database_connection = DatabaseConnection()
-        self.api_client = APIClient()
-
-    class Updater(UpdaterMixin, metaclass=type):
-        pass
-
-    class DescriptionUpdater(DescriptionUpdaterMixin, metaclass=type):
-        pass
-
-    def get_description(self) -> Optional[str]:
-        """Retrieve description from database or API data, filtering out specific values"""
-        description_updater = self.DescriptionUpdater()
-        updated_description = description_updater.update_description()
-        return updated_description
+    class APIClient:
+        async def get_data_from_api(self) -> str:
+            # API client logic here
+            pass

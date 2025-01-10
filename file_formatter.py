@@ -74,5 +74,3 @@ class FileFormatter:
         if cls.exists_file(file_name):
             cls.create_file(file_name).touch()
             os.remove(str(cls.create_file(file_name)))
-
-  #
