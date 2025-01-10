@@ -1,3 +1,9 @@
+import logging
+from typing import Optional
+import os
+from database_connection import DatabaseConnection
+from api_client import APIClient
+
 class File:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -7,29 +13,26 @@ class File:
     class Updater:
         async def update_content(self, db_data: str, api_data: str) -> bool:
             try:
-                with open(os.path.join("file.txt"), "w") as f:
-                    return await f.write(f"{db_data} {api_data}")
+                with open(os.path.join("file.txt"), "w") as file:
+                    await file.write(f"{db_data} {api_data}")
+                return True
             except Exception as e:
                 self.logger.error(e)
                 return False
 
     class DescriptionUpdater:
         async def update_description(self, database_info: dict) -> Optional[str]:
-            db_description = (await self.database_connection.read_from_database())['description']
+            db_description = await self.database_connection.read_from_database()['description']
             if 'specific_value' not in db_description.lower():
                 return db_description
             else:
                 return "default_description"
 
     @classmethod
-    async def generate_updated_content(cls, database_info: dict, api_response: str) -> str:
+    async def generate_updated_content(cls, database_info: dict, api_response: str) -> Optional[str]:
         description_updater = cls.DescriptionUpdater()
         return await description_updater.update_description(database_info)
 
     async def get_description(self) -> Optional[str]:
         updated_description = await self.generate_updated_content({"description": None}, "")
         return updated_description
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())

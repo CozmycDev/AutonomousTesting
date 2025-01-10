@@ -5,7 +5,7 @@ from pathlib import Path
 class FileHandler(logging.Handler):
     def __init__(self, filename: str, mode: str = 'a'):
         super().__init__()
-        self.filename = Path(filename)
+        self._filename = Path(filename)
         self.mode = mode
         self.mode = self._check_mode(mode)
 
@@ -22,8 +22,8 @@ class FileHandler(logging.Handler):
 
     def emit(self, record) -> None:
         message = self.format(record)
-        with open(str(self.filename), self.mode) as log_file:  
-            log_file.write(message.encode('utf-8') + b'\n')
+        with open(str(self.filename), self.mode, encoding='utf-8') as log_file:  
+            log_file.write(message + '\n')
 
 def configure_logging(filename: str, log_level: str, mode: str = 'a') -> logging.Handler:
     handler = FileHandler(filename, mode)

@@ -13,36 +13,30 @@ class File:
 
     @classmethod
     def from_file(cls, filename: str) -> 'File':
-        if Path(filename).suffix == '.json':
-            return cls(
-                name=Path("data.json").name,
-                file_path=Path(filename)
-            )
-        elif Path(filename).suffix in ['.txt', '.json']:
-            try:
-                with open(f"data/{filename}", 'rb') as f:
-                    content = f.read()
+        try:
+            if Path(filename).suffix == '.json':
+                return cls(
+                    name=Path("data.json").name,
+                    file_path=Path(filename)
+                )
+            elif Path(filename).suffix in ['.txt', '.json']:
+                content = cls._read_from_file(f"data/{filename}")
                 if filename != "data.txt":
-                    return cls(
-                        name=Path("data.txt").name,
-                        content=content,
-                        file_path=None
-                    )
-            except FileNotFoundError:
-                raise ValueError("Invalid JSON data in file") from None
-            except Exception as e:
-                raise ValueError("Failed to load file: " + str(e)) from None
+                    content.file_path = None
+                return content
+        except FileNotFoundError:
+            raise ValueError("Invalid JSON data in file") from None
 
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None) -> 'File':
         try:
-            with open(f"data/{extension or ''}", "r") as f:
-                data = json.load(f)
-            return cls(
-                name=name,
-                content=data.get('content'),
-                file_path=Path(filename)
-            )
+            if Path(filename := f"data/{extension or ''}").exists():
+                with open(filename, "r") as f:
+                    return cls(
+                        name=name,
+                        content=json.load(f).get('content'),
+                        file_path=Path(filename)
+                    )
         except FileNotFoundError:
             raise ValueError("Invalid JSON data in file") from None
         except Exception as e:
@@ -67,7 +61,7 @@ class File:
         try:
             with open(filename, "r") as file:
                 data = json.load(file)
-                if 'name' in data and 'content' in data:
+                if 'name' in data and 'content' in data and 'file_path' not in data:
                     return cls.from_name(data['name'], data.get('extension'))
                 else:
                     return cls.from_file(Path(filename).stem)
@@ -79,8 +73,8 @@ class File:
     @classmethod
     def write_to_json(cls, filename: str) -> 'File':
         try:
-            with open(filename, "w") as f:
-                json.dump({'name': Path(filename).name, 'extension': '.json'}, f, indent=4)
+            with open(f"data/{filename}.txt", "w") as f:
+                f.write(str(json.load({'name': Path(filename).name, 'extension': '.json'})['content']))
         except Exception as e:
             raise ValueError("Failed to write JSON file: " + str(e)) from None
         return cls.from_name(Path(filename).name)

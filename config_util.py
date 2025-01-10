@@ -9,7 +9,12 @@ class File(BaseFileSection):
         super().__init__("File")
         if not isinstance(content, dict) or len(content) == 0:
             raise ValueError("Content must be a non-empty dictionary")
-        self.data = json.loads(self._validate_json_string(json.dumps(content)))
+        content_json = json.dumps(content)
+        try:
+            content_dict = json.loads(content_json)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON format: {e}")
+        self.data = content_dict
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -17,13 +22,13 @@ class File(BaseFileSection):
 
     @data.setter
     def data(self, value: Dict[str, Any]):
+        if not isinstance(value, dict):
+            raise ValueError("Data must be a dictionary")
         try:
-            if not isinstance(value, dict):
-                raise ValueError("Data must be a dictionary")
-            self.validate_data(value)
             json.dumps(value)
-        except ValueError as e:
+        except TypeError as e:
             raise ValueError(f"Invalid JSON format: {e}")
+        self.validate_data(value)
         self._data = value
 
     @classmethod
@@ -40,7 +45,7 @@ class File(BaseFileSection):
     def load_data(cls, data):
         if not isinstance(data, dict) or len(data.items()) == 0:
             raise ValueError("Invalid JSON format")
-        cls._data = {"content": data}
+        return data
 
     @classmethod
     def validate_file_content(cls, file_name: str, expected_content: Dict[str, Any]) -> None:

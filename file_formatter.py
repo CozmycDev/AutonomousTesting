@@ -3,6 +3,7 @@ import threading
 import os
 from pathlib import Path
 import logging
+import json
 
 class File:
     def __init__(self) -> None:
@@ -65,7 +66,11 @@ class File:
         self._config['name'] = name
         try:
             file_path = Path(os.getcwd()) / name
-            file_path.write_text(json.dumps(self._config))
+            if not file_path.exists():
+                raise FileNotFoundError(f'File {name} does not exist')
+            with open(file_path, 'r') as f:
+                json_data = json.load(f)
+            self.config = {'name': name, **json_data}
             return True
         except Exception as e:
             print(f"Error loading configuration: {e}")
@@ -75,9 +80,9 @@ class File:
         """Saves the current configuration to the file."""
         try:
             file_path = Path(os.getcwd()) / self._config['name']
-            file_path.write_text(json.dumps(self._config))
+            if not file_path.exists():
+                raise FileExistsError(f'File {self._config["name"]} already exists')
+            with open(file_path, 'w') as f:
+                json.dump(self.config, f)
         except Exception as e:
             print(f"Error saving configuration: {e}")
-
-    def _handle_error(self, error: Exception) -> None:
-        self._logger.error(error)

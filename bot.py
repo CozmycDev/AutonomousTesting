@@ -10,18 +10,18 @@ class File:
     def __init__(self, bot: object, config_path: Path):
         self.bot = bot
         self.config_path = config_path
-        self._cogs: list[Cog] = []
+        self._cogs = []
 
         try:
-            with open(self.config_path, 'r') as config_file:
-                self._load_config_from_json(config_file)
+            with open(str(self.config_path), 'r') as config_file:
+                self.load_config_from_json(config_file)
         except (FileNotFoundError, json.JSONDecodeError):
             logging.warning(f"Skipping invalid JSON in {self.config_path}")
 
     async def load_cogs(self) -> None:
         await self.load_config()
         
-        filename_pattern = self._config.get('filename_pattern', [])
+        filename_pattern = self.filename_pattern
         self._cogs.clear()
 
         for file in self.path.glob('*'):
@@ -33,13 +33,13 @@ class File:
 
     @property
     def config(self) -> Dict[str, Any]:
-        return self._config
+        return self.config_data
 
     async def load_config(self) -> None:
-        if not self._config:
+        if not self.config_data:
             try:
                 with open(str(self.config_path), 'r') as config_file:
-                    await self._load_config_from_json(config_file)
+                    await self.load_config_from_json(config_file)
             except (FileNotFoundError, json.JSONDecodeError):
                 logging.warning(f"Skipping invalid JSON in {self.config_path}")
         
@@ -54,6 +54,14 @@ class File:
         spec.loader.exec_module(cog_module)
         return type('Cog', (Cog,), cog_module.__dict__)
 
-    def _load_config_from_json(self, config_file: Path) -> None:
-        self._config = json.load(config_file)
-        self._cogs.clear()
+    def load_config_from_json(self, config_file: Path) -> None:
+        try:
+            self.config_data = json.load(config_file)
+        except json.JSONDecodeError as e:
+            logging.warning(f"Skipping invalid JSON in {self.config_path}: {e}")
+        else:
+            self._cogs.clear()
+
+    def load_filename_pattern(self, filename_pattern: list[str]) -> None:
+        self.filename_pattern = filename_pattern
+        self.load_cogs()
