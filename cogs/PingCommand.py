@@ -2,6 +2,7 @@ from discord import app_commands
 from discord.ext import commands
 import logging
 from typing import Optional
+logging.config.fileConfig('repo/cogs/logging_config.py') 
 
 class PingCommand(commands.Cog):
     """Ping command cog."""
@@ -9,13 +10,6 @@ class PingCommand(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.logger = logging.getLogger(__name__)
-
-        # Added dependency for logging module to ensure proper configuration
-        import logging.config
-
-        # Load the logging configuration from a separate file (new_file:logging_config.py)
-        # NEW_FILE=logging_config.py
-        # END_FILE
 
     @app_command(name='ping', description="The string to say", options=[Option("string", "The input string.", True)])
     async def ping(self, ctx: app_commands.Context, test_string: Optional[str] = None):

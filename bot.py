@@ -9,16 +9,30 @@ import importlib.util
 class File:
     def __init__(self, bot, config_path: Path = Path('config.json')):
         self.bot = bot
-        self.path = Path(__name__).parent
         self.config_path = config_path
-        if not self.config_path.exists():
-            with open(str(self.config_path), 'w') as config_file:
-                json.dump({}, config_file)
-        self.load_config()
-
-    async def load_cogs(self):
-        await self.load_config()
+        self.config = {}
+        
+        # Load or create the configuration file if it doesn't exist
+        try:
+            with open(str(self.config_path), 'r') as config_file:
+                self.config = json.load(config_file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            logging.warning(f"Skipping invalid JSON in {self.config_path}")
+        
+    async def load_cogs(self) -> None:
+        # Refresh the configuration before loading cogs
+        if self.config is not None and 'filename_pattern' not in self.config:
+            try:
+                with open(str(self.config_path), 'r') as config_file:
+                    self.config = json.load(config_file)
+            except (FileNotFoundError, json.JSONDecodeError):
+                logging.warning(f"Skipping invalid JSON in {self.config_path}")
+        
+        # Load cogs only if the configuration exists
         cog_data = self.config.get('filename_pattern', [])
+        if not self.config:
+            return
+        
         for file in self.path.glob('*'):
             if file.is_file() and file.suffix == '.py':
                 if str(file).endswith(tuple(cog_data)):
@@ -34,13 +48,4 @@ class File:
         return type('Cog', (Cog,), cog_module.__dict__)
 
     def load_config(self) -> None:
-        config_path = self.config_path
-        if config_path.exists():
-            with open(str(config_path), 'r') as config_file:
-                try:
-                    self.config = json.load(config_file)
-                except json.JSONDecodeError:
-                    logging.warning(f"Skipping invalid JSON in {config_path}")
-        else:
-            logging.error(f"No config file found at {self.path}")
-            self.config = {}
+        pass

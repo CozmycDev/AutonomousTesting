@@ -14,7 +14,8 @@ class File:
             with open("file.txt", "w") as f:
                 return await f.write(f"{db_data} {api_data}")
 
-        async def _generate_updated_content(self, database_info: dict, api_response: str) -> str:
+        @staticmethod
+        async def _generate_updated_content(database_info: dict, api_response: str) -> str:
             content = await self.update_content(database_info['description'], api_response)
             return content
 

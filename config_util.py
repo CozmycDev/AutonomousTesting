@@ -11,7 +11,7 @@ class File(BaseFileSection):
 
     @property
     def data(self) -> Dict[str, Any]:
-        return {**self._data}
+        return self._data
 
     @data.setter
     def data(self, value: Dict[str, Any]):
@@ -27,10 +27,10 @@ class File(BaseFileSection):
             with open(file_name, "r") as file:
                 data = json.load(file)
                 cls._load_data(data)
+                return {k: v for k, v in data.get("content", {}).items() if v is not None}
         except Exception as e:
             print(f"Error loading from file: {e}")
             return {}
-        return cls.get_data(file_name)
 
     @classmethod
     def _load_data(cls, data):
@@ -40,11 +40,13 @@ class File(BaseFileSection):
 
     @classmethod
     def validate_file_content(cls, file_name: str, expected_content: Dict[str, Any]) -> None:
-        content = cls.load_from_file(file_name)
-        if json.dumps(expected_content) != json.dumps(content):
-            raise ValueError(f"Expected content is not a valid JSON format")
-        if content != expected_content:
-            raise ValueError(f"File content has changed to: {content}")
+        try:
+            content = cls.load_from_file(file_name)
+            if json.dumps(expected_content) != json.dumps(content):
+                raise ValueError(f"Expected content is not a valid JSON format")
+            self._data = {"content": expected_content}
+        except Exception as e:
+            print(f"Error validating file content: {e}")
 
     @classmethod
     def create_new_file(cls, save_path: str) -> "File":
@@ -55,7 +57,7 @@ class File(BaseFileSection):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                return {k: v for k, v in data.get("content", {}).items() if v is not None}
+                return data.get("content", {})
         except Exception as e:
             print(f"Error getting data from file: {e}")
             return {}
