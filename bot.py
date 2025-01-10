@@ -1,14 +1,14 @@
-from discord import app_commands
+import discord
 import asyncio
-import traceback
-from typing import Optional
-import json
 from pathlib import Path
+from discord.ext.commands import app_commands
 
 class Bot:
     def __init__(self):
         self._intents = discord.Intents.default()
         self.bot = discord.Bot(intents=self._intents)
+        self.watcher_config = None
+        self.watcher = None
 
     @property
     async def watcher_config(self) -> dict:
@@ -24,7 +24,7 @@ class Bot:
     @staticmethod
     async def start_watcher() -> None:
         bot = Bot()
-        await bot.watcher.start()
+        await bot.watcher_config
 
     async def __aenter__(self) -> None:
         try:
@@ -75,3 +75,16 @@ class Bot:
             raise Exception('Commands can only be synced when the bot is ready.')
         commands = [cmd for cmd in app_commands.all_commands(self.bot) if cmd.cog_name == 'cogs']
         await commands[0].invoke()
+
+    async def sync_commands_with_cogs(self) -> None:
+        if not self.watcher_config['path'].is_dir():
+            raise FileNotFoundError(f'Cogs path {self.watcher_config["path"]} does not exist.')
+        for filename in self.watcher_config['filename_pattern'].glob('cogs/*.py'):
+            if filename.is_file():
+                cogs = await import_cog(filename)
+                await self.bot.add_cog(cogs)
+
+async def import_cog(filename: str) -> app_commands.Cog:
+    with open(filename, 'r') as file:
+        cog_data = file.read()
+    return app_commands.Cog.from_type(app_commands.Cog, cog_data)

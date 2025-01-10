@@ -24,7 +24,7 @@ class File(BaseFileSection):
         return self.data.get("content", "")
 
     @classmethod
-    def _load_from_file(cls, file_name: str) -> Dict[str, Any]:
+    def _load_from_file(cls, file_name: str):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)

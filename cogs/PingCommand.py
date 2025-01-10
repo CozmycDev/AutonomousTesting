@@ -10,10 +10,10 @@ class PingCommand(commands.Cog):
         self.bot = bot
         
     @slash_command(name='ping', description=Option('The string to say', 'The string to display.'), options=[Option("string", "The input string.", True)])
-    async def ping(self, ctx: discord.ApplicationContext, test_string: str):
+    async def ping(self, ctx: discord.ApplicationContext, test_string: str=None):
         """Test command that returns the input string."""
         await ctx.defer()
-        return f"User said {test_string}"
+        return f"User said {test_string or ''}"
         
 def setup(bot: commands.Bot) -> None:
     bot.add_cog(PingCommand(bot))

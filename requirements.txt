@@ -54,8 +54,11 @@ class File:
 
     @classmethod
     def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
-        existing_content = cls.read_from_file(f"data/{name}.txt")
-        
+        try:
+            original_file = cls.read_from_file(f"data/{name}.txt")
+        except Exception as e:
+            raise ValueError(f"Failed to load file: {str(e)}")
+
         if new_content is not None:
             cls.write_to_json(f"data/{name}.txt", new_content)
 

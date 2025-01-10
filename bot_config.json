@@ -22,28 +22,28 @@ class File:
         @staticmethod
         def _generate_updated_content() -> str:
             """Generate updated content by combining database and API data"""
-            database_data = DatabaseConnection().read_from_database()
+            database_data = DatabaseConnection.read_from_database()
             api_data = APIClient.get_data_from_api()
             return f"{database_data} {api_data}"
 
+    class DescriptionUpdater:
+        def __init__(self, file: 'File'):
+            self.file = file
+        
+        @staticmethod
+        def update_description(file: File) -> Optional[str]:
+            """Retrieve description, filtering out specific values from database"""
+            filtered_description = DatabaseConnection.read_from_database()['description']
+            if 'specific_value' not in filtered_description.lower():
+                return filtered_description
+            else:
+                return "default_description"
+
     def get_description(self) -> Optional[str]:
-        """Retrieve description, filtering out specific values from database"""
-        updater = self.Updater
-        updated_file_updater = updater(file=self)
-        description = updater.update_file()
-        filtered_description = DatabaseConnection().read_from_database()['description']
-        if 'specific_value' not in filtered_description.lower():
-            return filtered_description
-        else:
-            return "default_description"
+        """Retrieve description from database or API data, filtering out specific values"""
+        description_updater = self.DescriptionUpdater()
+        updated_description = description_updater.update_description()
+        return updated_description
 
     def __init_subclass__(cls, **kwargs):
         cls.updater = cls.Updater
-
-from typing import Dict
-
-DatabaseConnection.read_from_database:Dict = {
-    'description':'database_description'
-}
-
-APIClient.get_data_from_api:str= "api_data"
