@@ -18,8 +18,8 @@ class File(BaseFileSection):
         if not isinstance(value, dict):
             raise ValueError("Data must be a dictionary")
         try:
-            self._validate_data(value)
-            self._load_data(value)
+            self.validate_data(value)
+            self.load_data(value)
         except ValueError as e:
             raise ValueError(f"Invalid JSON format: {e}")
         self._data = value
@@ -29,14 +29,14 @@ class File(BaseFileSection):
         with open(file_name, "r") as file:
             try:
                 data = json.load(file)
-                cls._load_data(data)
-                return {k: v for k, v in data.get("content", {}).items() if v is not None}
+                cls.load_data(data)
+                return cls._get_content(data.get("content", {}))
             except Exception as e:
                 print(f"Error loading from file: {e}")
                 return {}
 
     @classmethod
-    def _load_data(cls, data):
+    def load_data(cls, data):
         if not isinstance(data, dict) or len(data.get("content", {}).items()) == 0:
             raise ValueError("Invalid JSON format")
         cls._data = {"content": data}
@@ -60,7 +60,7 @@ class File(BaseFileSection):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                return data.get("content", {})
+                return cls._get_content(data.get("content", {}))
         except Exception as e:
             print(f"Error getting data from file: {e}")
             return {}
@@ -70,19 +70,29 @@ class File(BaseFileSection):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                return data.get("content", "")
+                return cls._get_content(data.get("content", ""))
         except Exception as e:
             print(f"Error getting file value: {e}")
             return ""
 
     @classmethod
     def update_file_content(cls, file_name: str, new_content: Dict[str, Any]) -> None:
-        cls._load_data({})
+        cls.load_data({})
         with open(file_name, "w") as file:
             json.dump(new_content, file)
 
     @staticmethod
-    def _validate_data(value: Dict[str, Any]) -> bool:
+    def validate_data(value: Dict[str, Any]) -> bool:
         return all(v is not None for v in value.values())
+        
+    @staticmethod
+    def load_data(data):
+        if not isinstance(data, dict) or len(data.get("content", {}).items()) == 0:
+            raise ValueError("Invalid JSON format")
+        cls._data = {"content": data}
+
+    @staticmethod
+    def _get_content(content: Dict[str, Any]):
+        return {k: v for k, v in content.items() if v is not None}
         
 END_FILE

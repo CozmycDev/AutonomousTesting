@@ -20,8 +20,8 @@ class File:
                 return False
 
     class DescriptionUpdater:
-        def update_description(self, database_info: dict) -> Optional[str]:
-            db_description = (self.database_connection.read_from_database())['description']
+        async def update_description(self, database_info: dict) -> Optional[str]:
+            db_description = (await self.database_connection.read_from_database())['description']
             if 'specific_value' not in db_description.lower():
                 return db_description
             else:
@@ -30,7 +30,7 @@ class File:
     @classmethod
     async def generate_updated_content(cls, database_info: dict, api_response: str) -> str:
         description_updater = cls.DescriptionUpdater()
-        return description_updater.update_description(database_info)
+        return await description_updater.update_description(database_info)
 
     async def get_description(self) -> Optional[str]:
         updated_description = await self.generate_updated_content({"description": None}, "")

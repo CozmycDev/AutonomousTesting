@@ -5,18 +5,17 @@ from typing import Optional
 import json
 import os
 
+
 @dataclass(frozen=True)
 class File:
-    name: str
-    content: Optional[str] = None
-    file_path: Optional[Path] = None
+    name: str = None  # Initialize name as an attribute
+    content: Optional[str] = None  # Make content optional for consistency with existing code
 
     @classmethod
     def from_file(cls, filename: str) -> 'File':
         if Path(filename).suffix == '.json':
             return cls(
                 name=Path("data.json").name,
-                content=None,
                 file_path=Path(filename)
             )
         elif Path(filename).suffix in ['.txt', '.json']:

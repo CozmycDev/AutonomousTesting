@@ -1,7 +1,7 @@
+import logging
 from discord import app_commands
 from discord.ext import commands
-import logging
-from typing import Optional
+import logging_config
 
 class PingCommand(commands.Cog):
     """Ping command cog."""
@@ -21,5 +21,5 @@ class PingError(Exception):
     """Custom exception for ping errors."""
     pass
 
-# Importing logging module configuration from a separate file to keep the main file clean and organized
-import logging_config  #
+# Set up logging configuration
+logging.config.dictConfig(logging_config)

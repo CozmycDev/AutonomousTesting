@@ -1,6 +1,7 @@
-import os
 from typing import Optional, Dict
 import threading
+import os
+from pathlib import Path
 
 class File:
     def __init__(self) -> None:
@@ -18,28 +19,26 @@ class File:
             self._config['name'] = name
             self._config['content'] = content
 
-        file_path = os.path.join(os.getcwd(), name)
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
+        file_path = Path(os.getcwd()) / name
+        file_path.parent.mkdir(exist_ok=True)
         try:
-            with open(file_path, 'w') as file:
-                file.write(self._config['content'])
+            file_path.write_text(self._config['content'])
         except Exception as e:
             self._handle_error(e)
 
     def update_file(self, new_name: str, content: Optional[str] = None) -> None:
         if not content and not new_name:
             raise ValueError('Content or name is required')
-        os.makedirs(os.path.dirname(new_name), exist_ok=True)
+        file_path = Path(os.getcwd()) / new_name
+        file_path.parent.mkdir(exist_ok=True)
         try:
-            with open(new_name, 'w') as file:
-                file.write(content if content else self._config['content'])
+            file_path.write_text(content if content else self._config['content'])
         except Exception as e:
             self._handle_error(e)
 
     def delete_file(self) -> None:
         try:
-            os.remove(os.path.join(os.getcwd(), self._config['name']))
+            os.remove(Path(os.getcwd()) / self._config['name'])
         except Exception as e:
             self._handle_error(e)
 
