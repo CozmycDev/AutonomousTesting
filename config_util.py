@@ -7,17 +7,16 @@ class File(BaseFileSection):
     def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None):
         self.file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
-        self._data = {}
-        self.validate_content(content)
+        self.data = {**self._data, **{"content": {k: v for k, v in self._data.items() if v is not None}}}
 
     @property
     def data(self) -> Dict[str, Any]:
-        return {**self._data, **{"content": {k: v for k, v in self._data.items() if v is not None}}}
+        return self._data
 
     @data.setter
     def data(self, value: Dict[str, Any]):
-        self.validate_content(value)
-        self._data = {k: v for k, v in value.items() if v is not None}
+        self._validate_data(value)
+        self._data = value
 
     @classmethod
     def load_from_file(cls, file_name: str) -> Dict[str, Any]:
@@ -34,22 +33,22 @@ class File(BaseFileSection):
     def _load_data(cls, data):
         if not isinstance(data, dict) or len(data.get("content", {}).items()) == 0:
             raise ValueError("Invalid JSON format")
-        cls._data = {k: v for k, v in data.get("content", {}).items() if v is not None}
+        cls._data = data
 
     @classmethod
     def validate_file_content(cls, file_name: str, expected_content: Dict[str, Any]) -> None:
         content = cls.load_from_file(file_name)
         try:
-            new_content = json.dumps(expected_content)
+            json.dumps(expected_content)
         except Exception as e:
             print(f"Error serializing expected content: {e}")
             raise ValueError(f"Expected content is not a valid JSON format")
-        if content != new_content:
+        if content != expected_content:
             raise ValueError(f"File content has changed to: {content}")
 
     @classmethod
     def create_new_file(cls, save_path: str) -> "File":
-        return cls(save_path, {})
+        return cls(save_path, {"content": {}})
 
     @classmethod
     def get_data(cls, file_name: str) -> Dict[str, Any]:
@@ -79,8 +78,6 @@ class File(BaseFileSection):
 
     @staticmethod
     def _validate_data(value: Dict[str, Any]) -> bool:
-        if not isinstance(value, dict):
-            return False
         return all(v is not None for v in value.values())
 
     @classmethod
@@ -88,8 +85,8 @@ class File(BaseFileSection):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                if not cls._validate_data(data.get("content", {})):
-                    return False
+                if cls._validate_data(data.get("content", {})):
+                    return True
         except Exception as e:
             print(f"Error checking file validity: {e}")
-        return True
+        return False

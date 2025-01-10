@@ -7,8 +7,8 @@ class File:
     CONTENT = None
     EXIST_ERROR_MSG = f'File {path} already exists'
 
-    def __init__(self):
-        self.config: dict = {
+    def __init__(self) -> None:
+        self._config: dict = {
             'name': '',
             'content': '',
             'path': ''
@@ -24,33 +24,39 @@ class File:
         path = os.path.join(os.getcwd(), name)
         if os.path.exists(path):
             raise FileExistsError(self.EXIST_ERROR_MSG.format(path=path))
-        with open(path, 'w') as file:
-            file.write(content)
-
-    def update(self, name: Optional[str] = None, content: Optional[str] = None) -> None:
-        if not self.config['name']:
-            raise ValueError('Name is required')
-        new_name = name or self.config.get('name')
-        path = os.path.join(os.getcwd(), new_name) if new_name else os.getcwd()
-        if os.path.exists(path):
-            raise FileExistsError(self.EXIST_ERROR_MSG.format(path=path))
-        self._update_file(path, new_name, content)
-        self.config['name'] = new_name
+        try:
+            with open(path, 'w') as file:
+                file.write(content)
+        except Exception as e:
+            self._handle_error(e)
 
     def _update_file(self, path: str, new_name: str, content: Optional[str] = None) -> None:
         if not content and not new_name:
             raise ValueError('Content or name is required')
-        with open(path, 'w') as file:
-            if new_name:
-                rel_path = os.path.join(os.path.dirname(path), new_name)
-            else:
-                rel_path = path
-            file.write(content)
+        try:
+            with open(path, 'w') as file:
+                if new_name:
+                    rel_path = os.path.join(os.path.dirname(path), new_name)
+                else:
+                    rel_path = path
+                file.write(content)
+        except Exception as e:
+            self._handle_error(e)
+
+    def _delete_file(self) -> None:
+        try:
+            os.remove(os.path.join(os.getcwd(), self.config['name']))
+        except Exception as e:
+            self._handle_error(e)
 
     def delete(self) -> None:
         if not self.config['name']:
             raise ValueError('File does not exist')
-        os.remove(os.path.join(os.getcwd(), self.config['name']))
+        self._delete_file()
+
+    def _handle_error(self, error: Exception) -> None:
+        print(error)
+        # You can also add more logging or error handling here as needed
 
     @property
     def config(self) -> dict:
@@ -58,4 +64,6 @@ class File:
 
     @config.setter
     def config(self, value: dict) -> None:
+        if 'name' not in value:
+            raise ValueError('Name is required')
         self._config = value

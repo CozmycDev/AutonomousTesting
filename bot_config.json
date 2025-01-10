@@ -15,9 +15,10 @@ class File:
                 return await f.write(f"{db_data} {api_data}")
 
         async def _generate_updated_content(self) -> str:
-            db_data = await self.database_connection.read_from_database()
-            api_data = await self.api_client.get_data_from_api()
-            return await self.update_content(db_data, api_data)
+            database_info = await self.database_connection.read_from_database()
+            api_response = await self.api_client.get_data_from_api()
+            content = await self.update_content(database_info['description'], api_response)
+            return content
 
     class Updater(File):
         pass
@@ -25,13 +26,10 @@ class File:
     class DescriptionUpdater(File):
         pass
 
-    def get_description(self) -> Optional[str]:
+    async def get_description(self) -> Optional[str]:
         description_updater = self.DescriptionUpdater()
         updated_description = await description_updater.update_description()
         return updated_description
-
-    async def update_file(self) -> bool:
-        await self._Updater().update_content()
 
     @classmethod
     async def update_description(cls, file: 'File') -> Optional[str]:
@@ -40,3 +38,26 @@ class File:
             return db_description
         else:
             return "default_description"
+
+    @staticmethod
+    async def generate_updated_content(database_info: dict, api_response: str) -> str:
+        return await file._Updater().update_content(database_info['description'], api_response)
+
+class FileUpdator:
+    def __init__(self, file: 'File'):
+        self.file = file
+
+    async def update_file(self) -> bool:
+        updated_content = await self.file.generate_updated_content(await self.file.database_connection.read_from_database(), await self.file.api_client.get_data_from_api())
+        with open("file.txt", "w") as f:
+            return await f.write(updated_content)
+
+async def main():
+    file = File()
+    updator = FileUpdator(file)
+    await updator.update_file()
+
+# This can be used to test the new functionality
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
