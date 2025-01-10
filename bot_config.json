@@ -11,16 +11,15 @@ class File:
 
     class Updater:
         async def update_content(self, db_data: str, api_data: str) -> bool:
-            with open("file.txt", "w") as f:
-                return await f.write(f"{db_data} {api_data}")
-
-        @staticmethod
-        async def _generate_updated_content(database_info: dict, api_response: str) -> str:
-            content = await self.update_content(database_info['description'], api_response)
-            return content
+            try:
+                with open("file.txt", "w") as f:
+                    return await f.write(f"{db_data} {api_data}")
+            except Exception as e:
+                self.logger.error(e)
+                return False
 
     class DescriptionUpdater(Updater):
-        async def update_description(self) -> Optional[str]:
+        async def update_description(self, database_info: dict) -> Optional[str]:
             db_description = (await self.database_connection.read_from_database())['description']
             if 'specific_value' not in db_description.lower():
                 return db_description
@@ -29,10 +28,11 @@ class File:
 
     @classmethod
     async def generate_updated_content(cls, database_info: dict, api_response: str) -> str:
-        return cls.DescriptionUpdater()._generate_updated_content(database_info, api_response)
+        description_updater = cls.DescriptionUpdater()
+        return description_updater.update_description(database_info)
 
     async def get_description(self) -> Optional[str]:
-        updated_description = await self.DescriptionUpdater().update_description()
+        updated_description = await self.generate_updated_content({"description": None}, "")
         return updated_description
 
 async def main():

@@ -17,20 +17,22 @@ class File(BaseFileSection):
     def data(self, value: Dict[str, Any]):
         if not isinstance(value, dict):
             raise ValueError("Data must be a dictionary")
-        if not self._validate_data(value):
-            raise ValueError("Invalid JSON format")
+        try:
+            self._validate_data(value)
+        except ValueError as e:
+            raise ValueError(f"Invalid JSON format: {e}")
         self._data = value
 
     @classmethod
     def load_from_file(cls, file_name: str) -> Dict[str, Any]:
-        try:
-            with open(file_name, "r") as file:
+        with open(file_name, "r") as file:
+            try:
                 data = json.load(file)
                 cls._load_data(data)
                 return {k: v for k, v in data.get("content", {}).items() if v is not None}
-        except Exception as e:
-            print(f"Error loading from file: {e}")
-            return {}
+            except Exception as e:
+                print(f"Error loading from file: {e}")
+                return {}
 
     @classmethod
     def _load_data(cls, data):
@@ -44,7 +46,7 @@ class File(BaseFileSection):
             content = cls.load_from_file(file_name)
             if json.dumps(expected_content) != json.dumps(content):
                 raise ValueError(f"Expected content is not a valid JSON format")
-            self._data = {"content": expected_content}
+            cls._data = {"content": expected_content}
         except Exception as e:
             print(f"Error validating file content: {e}")
 
@@ -81,14 +83,3 @@ class File(BaseFileSection):
     @staticmethod
     def _validate_data(value: Dict[str, Any]) -> bool:
         return all(v is not None for v in value.values())
-
-    @classmethod
-    def check_file_validity(cls, file_name: str) -> bool:
-        try:
-            with open(file_name, "r") as file:
-                data = json.load(file)
-                if cls._validate_data(data.get("content", {})):
-                    return True
-        except Exception as e:
-            print(f"Error checking file validity: {e}")
-        return False

@@ -22,25 +22,28 @@ class File:
             )
         elif Path(filename).suffix in ['.txt', '.json']:
             try:
-                with open(Path("data.json"), 'r') as f:
-                    if Path(filename).suffix == '.txt':
-                        return cls(
-                            name=Path("data.txt").name,
-                            content=os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}")),
-                            file_path=None
-                        )
-                    else:
-                        with open(f"data/{filename}", 'r') as f:
+                data = json.load(open(Path("data.json"), 'r'))
+                if Path(filename).suffix == '.txt':
+                    return cls(
+                        name=Path("data.txt").name,
+                        content=os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}")),
+                        file_path=None
+                    )
+                else:
+                    with open(f"data/{filename}", 'r') as f:
+                        try:
                             data = json.load(f)
                             return cls(
                                 name=data['name'],
                                 content=data.get('content'),
                                 file_path=Path(filename)
                             )
+                        except KeyError:
+                            raise ValueError("Invalid JSON data in file")
+            except FileNotFoundError:
+                raise ValueError(f"File not found: {filename}")
             except Exception as e:
                 raise ValueError(f"Failed to load file: {str(e)}")
-        else:
-            raise ValueError(f"Unsupported file extension for filename: {filename}")
 
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None) -> 'File':
@@ -51,32 +54,41 @@ class File:
         )
 
     @classmethod
-    def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
-        with open(f"data/{name}.txt", "r") as f:
+    def update_content(cls, filename: str) -> 'File':
+        with open(f"data/{filename}.txt", "r") as f:
             original_content = f.read()
-        if new_content is not None:
-            cls.write_to_json(f"data/{name}.txt", new_content)
-        return cls.from_file(Path(name).stem)
+        try:
+            cls.write_to_json(f"data/{filename}.txt", os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}")))
+        except FileNotFoundError:
+            raise ValueError(f"File not found: {filename}")
+        return cls.from_file(Path(filename).stem)
 
     @classmethod
     def _read_from_file(cls, filename: str) -> Optional['File']:
         try:
             with open(filename, "r") as file:
                 data = json.load(file)
-                if data is not None and 'content' in data:
+                if 'name' in data and 'content' in data:
                     return cls.from_name(data['name'], data.get('extension'))
                 else:
                     return cls.from_file(Path(filename).stem)
+        except FileNotFoundError:
+            raise ValueError(f"File not found: {filename}")
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
     @classmethod
-    def write_to_json(cls, filename: str, content: Optional[str] = None) -> 'File':
-        data = {'name': Path(filename).name, 'extension': '.json' if content is not None else None}
-        with open(filename, "w") as file:
-            json.dump(data, file, indent=4)
-        return cls.from_file(Path(filename).stem)
+    def write_to_json(cls, filename: str) -> 'File':
+        try:
+            with open(filename, "w") as f:
+                json.dump({'name': Path(filename).name, 'extension': '.json'}, f, indent=4)
+        except Exception as e:
+            raise ValueError(f"Failed to write JSON file: {str(e)}")
+        return cls.from_name(Path(filename).name)
 
     @classmethod
     def delete_file(cls, name: str) -> None:
-        os.remove(f"data/{name}.txt")
+        try:
+            os.remove(f"data/{name}.txt")
+        except FileNotFoundError:
+            raise ValueError(f"File not found: {name}")
