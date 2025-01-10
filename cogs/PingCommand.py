@@ -10,6 +10,13 @@ class PingCommand(commands.Cog):
         self.bot = bot
         self.logger = logging.getLogger(__name__)
 
+        # Added dependency for logging module to ensure proper configuration
+        import logging.config
+
+        # Load the logging configuration from a separate file (new_file:logging_config.py)
+        # NEW_FILE=logging_config.py
+        # END_FILE
+
     @app_command(name='ping', description="The string to say", options=[Option("string", "The input string.", True)])
     async def ping(self, ctx: app_commands.Context, test_string: Optional[str] = None):
         """Test command that returns the input string."""
@@ -20,3 +27,5 @@ class PingCommand(commands.Cog):
 class PingError(Exception):
     """Custom exception for ping errors."""
     pass
+
+#

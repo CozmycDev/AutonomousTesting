@@ -9,55 +9,37 @@ class File:
         self.database_connection = DatabaseConnection()
         self.api_client = APIClient()
 
-    class _Updater:
+    class Updater:
         async def update_content(self, db_data: str, api_data: str) -> bool:
             with open("file.txt", "w") as f:
                 return await f.write(f"{db_data} {api_data}")
 
-        async def _generate_updated_content(self) -> str:
-            database_info = await self.database_connection.read_from_database()
-            api_response = await self.api_client.get_data_from_api()
+        async def _generate_updated_content(self, database_info: dict, api_response: str) -> str:
             content = await self.update_content(database_info['description'], api_response)
             return content
 
-    class Updater(File):
-        pass
-
-    class DescriptionUpdater(File):
-        pass
-
-    async def get_description(self) -> Optional[str]:
-        description_updater = self.DescriptionUpdater()
-        updated_description = await description_updater.update_description()
-        return updated_description
+    class DescriptionUpdater(Updater):
+        async def update_description(self) -> Optional[str]:
+            db_description = (await self.database_connection.read_from_database())['description']
+            if 'specific_value' not in db_description.lower():
+                return db_description
+            else:
+                return "default_description"
 
     @classmethod
-    async def update_description(cls, file: 'File') -> Optional[str]:
-        db_description = (await cls.database_connection.read_from_database())['description']
-        if 'specific_value' not in db_description.lower():
-            return db_description
-        else:
-            return "default_description"
+    async def generate_updated_content(cls, database_info: dict, api_response: str) -> str:
+        return cls.DescriptionUpdater()._generate_updated_content(database_info, api_response)
 
-    @staticmethod
-    async def generate_updated_content(database_info: dict, api_response: str) -> str:
-        return await file._Updater().update_content(database_info['description'], api_response)
-
-class FileUpdator:
-    def __init__(self, file: 'File'):
-        self.file = file
-
-    async def update_file(self) -> bool:
-        updated_content = await self.file.generate_updated_content(await self.file.database_connection.read_from_database(), await self.file.api_client.get_data_from_api())
-        with open("file.txt", "w") as f:
-            return await f.write(updated_content)
+    async def get_description(self) -> Optional[str]:
+        updated_description = await self.DescriptionUpdater().update_description()
+        return updated_description
 
 async def main():
     file = File()
-    updator = FileUpdator(file)
-    await updator.update_file()
+    # async for description in file.get_description():
+    #     print(description)
+    pass
 
-# This can be used to test the new functionality
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())

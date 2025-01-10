@@ -26,16 +26,17 @@ class File:
                     if Path(filename).suffix == '.txt':
                         return cls(
                             name=Path("data.txt").name,
-                            content=open(f"data/{filename}", 'r').read(),
+                            content=os.read(open(f"data/{filename}", 'rb'), os.path.getsize(f"data/{filename}")),
                             file_path=None
                         )
                     else:
-                        content = json.load(f)
-                        return cls(
-                            name=content['name'],
-                            content=content.get('content'),
-                            file_path=Path(filename)
-                        )
+                        with open(f"data/{filename}", 'r') as f:
+                            data = json.load(f)
+                            return cls(
+                                name=data['name'],
+                                content=data.get('content'),
+                                file_path=Path(filename)
+                            )
             except Exception as e:
                 raise ValueError(f"Failed to load file: {str(e)}")
         else:
@@ -43,7 +44,7 @@ class File:
 
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None) -> 'File':
-        if Path(filename:=Path(name).expanduser()) in [Path("data.json"), Path(f"data/{extension or ''}")]:
+        if Path(name).expanduser() in [Path("data.json"), Path(f"data/{extension or ''}")]:
             try:
                 with open(f"data/{extension or ''}", 'r') as f:
                     content = json.load(f)
@@ -55,11 +56,8 @@ class File:
             except Exception as e:
                 raise ValueError(f"Failed to load data: {str(e)}")
         else:
-            try:
-                with open(f"data/{extension or ''}", 'r') as f:
-                    content = f.read()
-            except Exception as e:
-                raise ValueError(f"Failed to load data: {str(e)}")
+            with open(f"data/{extension or ''}", 'r') as f:
+                content = f.read()
             return cls(
                 name=name,
                 content=content,

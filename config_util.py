@@ -7,15 +7,18 @@ class File(BaseFileSection):
     def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None):
         self.file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
-        self.data = {**self._data, **{"content": {k: v for k, v in self._data.items() if v is not None}}}
+        self._data = {}
 
     @property
     def data(self) -> Dict[str, Any]:
-        return self._data
+        return {**self._data}
 
     @data.setter
     def data(self, value: Dict[str, Any]):
-        self._validate_data(value)
+        if not isinstance(value, dict):
+            raise ValueError("Data must be a dictionary")
+        if not self._validate_data(value):
+            raise ValueError("Invalid JSON format")
         self._data = value
 
     @classmethod
@@ -33,15 +36,12 @@ class File(BaseFileSection):
     def _load_data(cls, data):
         if not isinstance(data, dict) or len(data.get("content", {}).items()) == 0:
             raise ValueError("Invalid JSON format")
-        cls._data = data
+        cls._data = {"content": data}
 
     @classmethod
     def validate_file_content(cls, file_name: str, expected_content: Dict[str, Any]) -> None:
         content = cls.load_from_file(file_name)
-        try:
-            json.dumps(expected_content)
-        except Exception as e:
-            print(f"Error serializing expected content: {e}")
+        if json.dumps(expected_content) != json.dumps(content):
             raise ValueError(f"Expected content is not a valid JSON format")
         if content != expected_content:
             raise ValueError(f"File content has changed to: {content}")
@@ -74,7 +74,7 @@ class File(BaseFileSection):
     def update_file_content(cls, file_name: str, new_content: Dict[str, Any]) -> None:
         cls._load_data({})
         with open(file_name, "w") as file:
-            json.dump({"content": new_content}, file)
+            json.dump(new_content, file)
 
     @staticmethod
     def _validate_data(value: Dict[str, Any]) -> bool:
