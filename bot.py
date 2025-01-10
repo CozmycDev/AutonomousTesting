@@ -11,8 +11,9 @@ class File:
         self.bot = bot
         self.config_path = config_path
         self._cogs = []
-        self.config_data: Dict[str, Any] = None  # Use type annotation for better readability
+        self.config_data: Dict[str, Any] = None
 
+        # Initialize configuration loading before any operation
         self.load_config()
 
     async def load_cogs(self) -> None:

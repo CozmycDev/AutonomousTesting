@@ -13,19 +13,22 @@ class File:
 
     @classmethod
     def from_file(cls, filename: str) -> 'File':
-        try:
-            if Path(filename).suffix == '.json':
-                return cls(
-                    name=Path("data.json").name,
-                    file_path=Path(filename)
-                )
-            elif Path(filename).suffix in ['.txt', '.json']:
-                content = cls._read_from_file(f"data/{filename}")
-                if filename != "data.txt":
-                    content.file_path = None
-                return content
-        except FileNotFoundError:
-            raise ValueError("Invalid JSON data in file") from None
+        if Path(filename).suffix in ['.json', '.txt']:
+            try:
+                file_path = Path(filename)
+                if file_path == Path("data.json"):
+                    return cls(
+                        name=Path("data.json").name,
+                        content=None,
+                        file_path=file_path
+                    )
+                else:
+                    content = cls._read_from_file(file_path.stem)
+                    if filename != "data.txt":
+                        content.file_path = None
+                    return content
+            except FileNotFoundError:
+                raise ValueError("Invalid JSON data in file") from None
 
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None) -> 'File':

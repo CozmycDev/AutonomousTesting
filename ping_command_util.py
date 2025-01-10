@@ -54,50 +54,53 @@ class File(ABC):
     def save_data(self):
         pass
 
-
-    def _get_size(self) -> int:
-        try:
-            return os.path.getsize(self.file_name)
-        except FileNotFoundError:
-            raise Exception(f"File {self.file_name} not found")
-
-    def _set_size(self) -> None:
-        self.size = _ensure_valid_file_size()
-        _write_zero_bytes_to_file()
-
-    def _content(self) -> str:
-        return _load_content_from_file()
-
-
-    def _set_content(self) -> None:
-        self.content = _load_content_from_file()
-
-    def _validate_file_name(self) -> None:
-        if not os.path.isabs(self.file_name):
+    @staticmethod
+    def _validate_file_name(file_name: str) -> None:
+        if not os.path.isabs(file_name):
             raise ValueError("File name must be absolute path.")
 
-
-def _ensure_valid_file_size() -> int:
-    while True:
+    @staticmethod
+    def _get_size(file_name: str) -> int:
         try:
-            size = int(input("Enter file size (int): "))
-            return size
-        except ValueError:
-            print("Invalid file size. Please enter an integer.")
+            return os.path.getsize(file_name)
+        except FileNotFoundError:
+            raise Exception(f"File {file_name} not found")
 
-def _write_zero_bytes_to_file(self) -> None:
-    try:
-        with open(self.file_name, 'wb') as file:
-            file.write(b'\0' * self.size)
-    except Exception as e:
-        raise Exception(f"Failed to write zero bytes to file {self.file_name}: {str(e)}")
+    @staticmethod
+    def _set_size(size: int, file_name: str) -> None:
+        if size < 0:
+            raise ValueError("File size must be non-negative.")
+        File._validate_file_name(file_name)
+        _ensure_valid_file_size = lambda file_name=file_name: int(input(f"Enter file size (int) for {file_name}: "))
+        file_size = _ensure_valid_file_size()
+        try:
+            with open(file_name, 'wb') as file:
+                file.write(b'\0' * file_size)
+        except Exception as e:
+            raise Exception(f"Failed to write zero bytes to file {file_name}: {str(e)}")
 
+    @staticmethod
+    def _load_content_from_file(file_name: str) -> str:
+        try:
+            with open(file_name, 'rb') as file:
+                return file.read().decode('utf-8')
+        except FileNotFoundError:
+            return ""
+        except Exception as e:
+            raise Exception(f"Failed to read content from file {file_name}: {str(e)}")
 
-def _load_content_from_file() -> str:
-    try:
-        with open(self.file_name, 'rb') as file:
-            return file.read().decode('utf-8')
-    except FileNotFoundError:
-        return ""
-    except Exception as e:
-        raise Exception(f"Failed to read content from file {self.file_name}: {str(e)}")
+    def __str__(self) -> str:
+        return f"File(name={self.file_name}, size={self.size or 'None'}, content='{self.content or ''}')"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def to_dict(self) -> dict:
+        return {'file_name': self.file_name, 'size': self.size, 'content': self.content}
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'File':
+        file = cls(data['file_name'])
+        file.size = data['size']
+        file.content = data['content']
+        return file

@@ -1,14 +1,12 @@
-from typing import Optional
-import logging
-from database_connection import DatabaseConnection
-from api_client import APIClient
-import os
-
 class File:
-    def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.database_connection = DatabaseConnection()
-        self.api_client = APIClient()
+    from typing import Optional
+    from database_connection import DatabaseConnection
+    from api_client import APIClient
+    from logging import getLogger as log
+
+    logger = log(__name__)
+    database_connection = DatabaseConnection()
+    api_client = APIClient()
 
     class Updater:
         async def update_content(self, db_data: str, api_data: str) -> bool:
@@ -36,5 +34,3 @@ class File:
     async def get_description(self) -> Optional[str]:
         updated_description = await self.generate_updated_content({"description": None}, "")
         return updated_description
-
-#

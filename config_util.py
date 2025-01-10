@@ -5,14 +5,14 @@ from BaseFileSection import BaseFileSection
 
 class File(BaseFileSection):
     def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None) -> None:
-        self.file_data = {"file_name": file_name, "save_path": save_path}
+        self._file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
         if not isinstance(content, dict) or len(content) == 0:
             raise ValueError("Content must be a non-empty dictionary")
 
     @property
     def data(self) -> Dict[str, Any]:
-        return self._data
+        return self._file_data["content"]
 
     @data.setter
     def data(self, value: Dict[str, Any]) -> None:
@@ -23,7 +23,7 @@ class File(BaseFileSection):
         except TypeError as e:
             raise ValueError(f"Invalid JSON format: {e}")
         self._validate_data(value)
-        self._data = value
+        self._file_data["content"] = value
 
     @classmethod
     def load_from_file(cls, file_name: str) -> Dict[str, Any]:

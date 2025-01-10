@@ -1,19 +1,9 @@
-from logging.handlers import RotatingFileHandler
-import logging
-
 file_config = {
-    'class': 'logging.handlers.RotatingFileHandler',
+    'class': 'logging.handlers.TimedRotatingFileHandler',
     'filename': '/var/log/ping.log',
     'mode': 'a',
     'level': 'INFO',
-    'formatter': 'verbose',
-    'maxBytes': 1024 * 1024,  # 1MB
+    'when': 'midnight',
+    'interval': 1,
     'backupCount': 5
 }
-
-class LoggingConfig:
-    def __init__(self, handlers=None, formatters=None):
-        self.handlers = handlers if handlers else handler_config
-        self.formatters = formatters if formatters else formatters
-
-logging.config.dictConfig(self.LoggingConfig())

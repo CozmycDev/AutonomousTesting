@@ -5,7 +5,7 @@ class FileHandler(logging.Handler):
     def __init__(self, filename: str, mode: str = 'a'):
         super().__init__()
         self._filename = Path(filename)
-        self.mode = self._check_mode(mode)
+        self.mode = _check_mode(mode)
 
     @staticmethod
     def _check_mode(mode: str) -> str:
@@ -30,7 +30,7 @@ def configure_logging(filename: str, log_level: str, mode: str = 'a') -> logging
     if not logger.hasHandlers():
         logger.setLevel(get_log_level(log_level))
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        file_handler.setFormatter(formatter)
+        handler.setFormatter(formatter)
         logger.addHandler(handler)
 
     return handler

@@ -1,6 +1,8 @@
 from typing import Optional, Dict
 import logging
 import json
+import os
+import threading
 
 class File:
     def __init__(self) -> None:
@@ -19,9 +21,10 @@ class File:
             self._config['name'] = name
             self._config['content'] = content
 
-        file_path = Path(os.getcwd()) / name
-        file_path.parent.mkdir(exist_ok=True)
+        file_path = os.path.join(os.getcwd(), name)
+        file_path.parent.mkdir(exist_ok=True, parents=True)
         try:
+            os.remove(file_path) if os.path.exists(file_path) else None
             file_path.write_text(json.dumps(self._config))
         except Exception as e:
             self._handle_error(e)
@@ -29,17 +32,17 @@ class File:
     def update_file(self, new_name: str, content: Optional[str] = None) -> None:
         if not content and not new_name:
             raise ValueError('Content or name is required')
-        file_path = Path(os.getcwd()) / new_name
-        file_path.parent.mkdir(exist_ok=True)
+        file_path = os.path.join(os.getcwd(), new_name)
+        file_path.parent.mkdir(exist_ok=True, parents=True)
         try:
-            os.remove(file_path)
+            os.remove(file_path) if os.path.exists(file_path) else None
             file_path.write_text(json.dumps(self._config))
         except Exception as e:
             self._handle_error(e)
 
     def delete_file(self) -> None:
         try:
-            os.remove(Path(os.getcwd()) / self._config['name'])
+            os.remove(os.path.join(os.getcwd(), self._config['name']))
         except Exception as e:
             self._handle_error(e)
 
@@ -63,7 +66,7 @@ class File:
         """Loads file configuration from the given name."""
         self._config['name'] = name
         try:
-            file_path = Path(os.getcwd()) / name
+            file_path = os.path.join(os.getcwd(), name)
             if not file_path.exists():
                 raise FileNotFoundError(f'File {name} does not exist')
             with open(file_path, 'r') as f:
@@ -77,7 +80,7 @@ class File:
     def save_config(self) -> None:
         """Saves the current configuration to the file."""
         try:
-            file_path = Path(os.getcwd()) / self._config['name']
+            file_path = os.path.join(os.getcwd(), self._config['name'])
             if os.path.exists(file_path):
                 os.remove(file_path)
             with open(file_path, 'w') as f:
