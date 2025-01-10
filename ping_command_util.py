@@ -78,13 +78,14 @@ class File(ABC):
 
 
 def _ensure_valid_file_size() -> int:
-    try:
-        return int(input("Enter file size (int): "))
-    except ValueError:
-        raise Exception("Invalid file size")
+    while True:
+        try:
+            size = int(input("Enter file size (int): "))
+            return size
+        except ValueError:
+            print("Invalid file size. Please enter an integer.")
 
-
-def _write_zero_bytes_to_file() -> None:
+def _write_zero_bytes_to_file(self) -> None:
     try:
         with open(self.file_name, 'wb') as file:
             file.write(b'\0' * self.size)

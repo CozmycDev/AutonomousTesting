@@ -4,24 +4,18 @@ from BaseFileSection import BaseFileSection
 
 
 class File(BaseFileSection):
-    def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None):
+    def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None) -> None:
         self.file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
         if not isinstance(content, dict) or len(content) == 0:
             raise ValueError("Content must be a non-empty dictionary")
-        content_json = json.dumps(content)
-        try:
-            content_dict = json.loads(content_json)
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Invalid JSON format: {e}")
-        self.data = self._normalize_data(content_dict)
 
     @property
     def data(self) -> Dict[str, Any]:
         return self._data
 
     @data.setter
-    def data(self, value: Dict[str, Any]):
+    def data(self, value: Dict[str, Any]) -> None:
         if not isinstance(value, dict):
             raise ValueError("Data must be a dictionary")
         try:

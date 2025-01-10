@@ -1,13 +1,10 @@
 from typing import Optional, Dict
-import threading
-import os
-from pathlib import Path
 import logging
 import json
 
 class File:
     def __init__(self) -> None:
-        self._config: Dict[str, str] = {
+        self._config = {
             'name': '',
             'content': '',
             'path': ''
@@ -25,7 +22,7 @@ class File:
         file_path = Path(os.getcwd()) / name
         file_path.parent.mkdir(exist_ok=True)
         try:
-            file_path.write_text(self._config['content'])
+            file_path.write_text(json.dumps(self._config))
         except Exception as e:
             self._handle_error(e)
 
@@ -35,7 +32,8 @@ class File:
         file_path = Path(os.getcwd()) / new_name
         file_path.parent.mkdir(exist_ok=True)
         try:
-            file_path.write_text(content if content else self._config['content'])
+            os.remove(file_path)
+            file_path.write_text(json.dumps(self._config))
         except Exception as e:
             self._handle_error(e)
 

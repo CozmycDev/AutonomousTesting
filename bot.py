@@ -11,15 +11,17 @@ class File:
         self.bot = bot
         self.config_path = config_path
         self._cogs = []
+        self.config_data: Dict[str, Any] = None  # Use type annotation for better readability
 
-        self.load_config_from_json(config_path)
+        self.load_config()
 
     async def load_cogs(self) -> None:
         await self.load_config()
-        
         filename_pattern = self.filename_pattern
+        
+        # Ensure cogs are reloaded when config is updated
         self._cogs.clear()
-
+        
         for file in self.path.glob('*'):
             if file.is_file() and file.suffix == '.py':
                 cog_module = self.import_cog(file)
@@ -56,6 +58,7 @@ class File:
         except json.JSONDecodeError as e:
             logging.warning(f"Skipping invalid JSON in {self.config_path}: {e}")
         else:
+            # Clear cogs before reloading them to ensure accurate file tracking
             self._cogs.clear()
 
     def load_filename_pattern(self, filename_pattern: list[str]) -> None:
