@@ -21,7 +21,7 @@ class File:
                 content=None,
                 file_path=Path(filename)
             )
-        else:
+        elif Path(filename).suffix == ".txt":
             try:
                 with open(Path("data.txt"), 'r') as f:
                     content = f.read()
@@ -32,11 +32,13 @@ class File:
                 content=content,
                 file_path=None
             )
+        else:
+            raise ValueError(f"Unsupported file extension for filename: {filename}")
 
 
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None, filename: Optional[str] = None) -> 'File':
-        if filename and filename.endswith(extension):
+        if Path(filename).is_file() and Path(filename).suffix == (extension or '.txt'):
             return cls(
                 name=name,
                 content=open(f"data/{extension}", 'r').read(),

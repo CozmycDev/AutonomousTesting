@@ -9,17 +9,13 @@ class File:
 
     class _Updater:
         async def update_content(self, db_data: str, api_data: str) -> bool:
-            return await self._write_to_file(f"{db_data} {api_data}")
-
-        async def _write_to_file(self, content: str) -> bool:
             with open("file.txt", "w") as f:
-                f.write(content)
-            return True
+                return await f.write(f"{db_data} {api_data}")
 
         async def _generate_updated_content(self) -> str:
             db_data = await self.database_connection.read_from_database()
             api_data = await self.api_client.get_data_from_api()
-            return self.update_content(db_data, api_data)
+            return await self.update_content(db_data, api_data)
 
     class Updater(File):
         pass

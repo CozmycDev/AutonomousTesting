@@ -19,38 +19,29 @@ class File(BaseFileSection):
             raise ValueError("Data must be a dictionary")
         self._data = {k: v for k, v in value.items() if v is not None}
 
-    def get_value(self) -> str:
-        return self.data.get("content", "")
-
     @classmethod
-    def load_from_file(cls, file_name: str):
+    def load_from_file(cls, file_name: str) -> Dict[str, Any]:
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
                 cls._load_data(data)
         except Exception as e:
             print(f"Error loading from file: {e}")
-
-    def _load_data(self, data):
-        self._data = {k: v for k, v in data.get("content", {}).items() if v is not None}
-
-    def save_to_file(self):
-        try:
-            with open(self.save_path, "w") as file:
-                json.dump({**self.file_data, **{"content": self.data}}, file)
-        except Exception as e:
-            print(f"Error saving to file: {e}")
+            return {}
 
     @classmethod
-    def validate_file_content(cls, file_name: str, content: Dict[str, Any]) -> None:
-        cls.load_from_file(file_name)
-        if content != cls.get_value():
-            raise ValueError("File content has changed")
+    def _load_data(cls, data):
+        cls._data = {k: v for k, v in data.get("content", {}).items() if v is not None}
 
     @classmethod
-    def create_new_file(cls, save_path: str):
-        new_file = cls(save_path, {})
-        return new_file
+    def validate_file_content(cls, file_name: str, expected_content: Dict[str, Any]) -> None:
+        content = cls.load_from_file(file_name)
+        if content != expected_content:
+            raise ValueError(f"File content has changed to: {content}")
+
+    @classmethod
+    def create_new_file(cls, save_path: str) -> "File":
+        return cls(save_path, {})
 
     @classmethod
     def get_data(cls, file_name: str) -> Dict[str, Any]:
@@ -73,9 +64,24 @@ class File(BaseFileSection):
             return ""
 
     @classmethod
-    def update_file_content(cls, file_name: str, content: Dict[str, Any]) -> None:
+    def update_file_content(cls, file_name: str, new_content: Dict[str, Any]) -> None:
+        cls._load_data({})
+        with open(file_name, "w") as file:
+            json.dump({"content": new_content}, file)
+
+    @staticmethod
+    def _validate_data(value: Dict[str, Any]) -> bool:
+        if not isinstance(value, dict):
+            return False
+        return all(v is not None for v in value.values())
+
+    @classmethod
+    def check_file_validity(cls, file_name: str) -> bool:
         try:
-            with open(file_name, "w") as file:
-                json.dump({"content": content}, file)
+            with open(file_name, "r") as file:
+                data = json.load(file)
+                if not cls._validate_data(data.get("content", {})):
+                    return False
         except Exception as e:
-            print(f"Error updating file content: {e}")
+            print(f"Error checking file validity: {e}")
+        return True
