@@ -12,41 +12,43 @@ class FileFormatter:
         try:
             return pathlib.Path(self.file_name)
         except FileNotFoundError as e:
-            pathlib.Path(self.file_name).touch()  # Touch to create file
+            self._create_file_if_not_exists()
             return pathlib.Path(self.file_name)
         except Exception as e:
-            logger.error(f"Error creating file {e}")
+            logging.error(f"Error creating file {e}")
             raise
 
-    def format_file(self, content: Optional[str] = None) -> None:
-        if not content:
-            logger.error("Content is required")
-            raise ValueError("Content is required")
+    def _create_file_if_not_exists(self):
+        if not os.path.exists(str(pathlib.Path(self.file_name))):
+            pathlib.Path(self.file_name).touch()
 
+    def format_file(self, content: Optional[str] = None) -> None:
+        self._validate_content(content)
         try:
             with self._get_or_create_file().open("w") as file:
                 data = {"content": content}
                 dump(data, str(file))
         except Exception as e:
-            logger.error(f"Error saving to file: {e}")
+            logging.error(f"Error saving to file: {e}")
+
+    def _validate_content(self, content: Optional[str]) -> None:
+        if not content:
+            raise ValueError("Content is required")
 
     def format_file_from_json(self) -> Optional[str]:
         try:
             with self._get_or_create_file().open("r") as file:
                 return load(str(file)).get("content", None)
         except FileNotFoundError:
-            logger.error(f"No JSON file found at {self.file_name}")
+            logging.error(f"No JSON file found at {self.file_name}")
         except Exception as e:
-            logger.error(f"Error loading from file: {e}")
+            logging.error(f"Error loading from file: {e}")
 
     def format_file_to_json(self, content: Optional[str] = None) -> None:
-        if not content:
-            logger.error("Content is required")
-            raise ValueError("Content is required")
-
+        self._validate_content(content)
         try:
             with self._get_or_create_file().open("w") as file:
                 data = {"content": content}
                 dump(data, str(file))
         except Exception as e:
-            logger.error(f"Error saving to JSON file: {e}")
+            logging.error(f"Error saving to JSON file: {e}")

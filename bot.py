@@ -13,7 +13,7 @@ class Bot:
 
     @property
     async def watcher_config(self) -> dict:
-        return await self._get_watcher_config()
+        return await self._load_watcher_config()
 
     @staticmethod
     async def run(config_util: Optional[Any] = None) -> None:
@@ -29,7 +29,7 @@ class Bot:
 
     async def __aenter__(self) -> None:
         try:
-            self.watcher_config = await self._get_watcher_config()
+            self.watcher_config = await self._load_watcher_config()
             self.watcher = Watcher(bot=self.bot, path=Path('cogs'), **self.watcher_config)
             await self.watcher.start()
             await self.bot.sync_commands()
@@ -49,20 +49,13 @@ class Bot:
     def bot(cls) -> 'Bot':
         return cls()
 
-    async def _get_watcher_config(self) -> dict:
+    async def _load_watcher_config(self) -> dict:
         config_file = Path('watcher_config.json')
         if not config_file.exists():
             raise FileNotFoundError(f'Watcher configuration file {config_file} not found.')
         with open(config_file, 'r') as config_file:
             config_data = json.load(config_file)
-        watcher_config = config_data.get('config', {})
-        watcher_config['path'] = Path('cogs')
-        watcher_config['filename_pattern'] = '*.py'
-        return watcher_config
-
-    async def _load_watcher_config(self) -> None:
-        await self._get_watcher_config()
-        self.watcher.stop()
+        return config_data.get('config', {})
 
     async def _update_watcher_config(self, new_config: dict) -> None:
         if not new_config:
@@ -78,7 +71,7 @@ class Bot:
         await commands[0].invoke()
 
     async def sync_commands_with_cogs(self) -> None:
-        if not self.watcher_config['path'].is_dir():
+        if not self.watcher_config.get('path').is_dir():
             raise FileNotFoundError(f'Cogs path {self.watcher_config["path"]} does not exist.')
         for filename in self.watcher_config['filename_pattern'].glob('cogs/*.py'):
             if filename.is_file():

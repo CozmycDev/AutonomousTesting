@@ -25,38 +25,26 @@ class File:
     @classmethod
     def from_extension(cls, extension: str) -> 'File':
         if extension == '.json':
-            return cls.from_json_data()
+            try:
+                data = cls.read_json(f"data/{extension}")
+            except ValueError as e:
+                raise ValueError(f"Failed to load JSON file: {str(e)}")
+            
+            return cls(name=pathlib.Path("data.json").name, content=data.get('content'))
         elif extension == '.txt':
-            return cls.from_text_file()
+            try:
+                content = pathlib.Path("data.txt").read_text()
+            except Exception as e:
+                raise ValueError(f"Failed to read text file: {str(e)}")
 
-    @classmethod
-    def from_json_data(cls) -> 'File':
-        try:
-            with open("data.json", "r") as file:
-                data = json.load(file)
-        except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
-
-        name = data.get('name', '')
-        content = data.get('content')
-
-        return cls(name=name, content=content)
-
-    @classmethod
-    def from_text_file(cls) -> 'File':
-        try:
-            with open("data.txt", "r") as file:
-                content = file.read()
-        except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
-
-        return cls(name=pathlib.Path("data.txt").name, content=content)
+            name = pathlib.Path("data.txt").name
+            return cls(name=name, content=content)
 
     @classmethod
     def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
         try:
             original_file = cls.read_from_file(f"data/{name}.txt")
-        except Exception as e:
+        except ValueError as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
         if new_content is not None:
@@ -78,7 +66,7 @@ class File:
     def read_from_file(cls, filename: str) -> Optional['File']:
         try:
             return cls.read_json(f"data/{filename}")
-        except Exception as e:
+        except ValueError as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
     @classmethod
@@ -87,7 +75,7 @@ class File:
             with open(filename, "r") as file:
                 data = json.load(file)
         except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
+            raise ValueError(f"Failed to load JSON file: {str(e)}")
 
         return data.get('content')
 
