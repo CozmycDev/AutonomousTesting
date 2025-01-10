@@ -49,9 +49,29 @@ class Bot:
         return cls()
 
     async def _get_watcher_config(self) -> dict:
-        with open('watcher_config.json') as config_file:
+        config_file = Path('watcher_config.json')
+        if not config_file.exists():
+            raise FileNotFoundError(f'Watcher configuration file {config_file} not found.')
+        with open(config_file, 'r') as config_file:
             config_data = json.load(config_file)
         watcher_config = config_data.get('config', {})
         watcher_config['path'] = Path('cogs')
         watcher_config['filename_pattern'] = '*.py'
         return watcher_config
+
+    async def _load_watcher_config(self) -> None:
+        await self._get_watcher_config()
+        self.watcher.stop()
+
+    async def _update_watcher_config(self, new_config: dict) -> None:
+        if not new_config:
+            raise ValueError('Watcher configuration cannot be empty.')
+        self.watcher_config = new_config
+        self.watcher = Watcher(bot=self.bot, path=Path('cogs'), **self.watcher_config)
+        await self.watcher.start()
+
+    async def _sync_commands(self) -> None:
+        if not hasattr(self, 'bot') or not self.bot.is_ready():
+            raise Exception('Commands can only be synced when the bot is ready.')
+        commands = [cmd for cmd in app_commands.all_commands(self.bot) if cmd.cog_name == 'cogs']
+        await commands[0].invoke()

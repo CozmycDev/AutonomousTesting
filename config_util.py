@@ -23,21 +23,21 @@ class File(BaseFileSection):
     def get_value(self) -> str:
         return self.data.get("content", "")
 
-    def save_to_file(self):
-        try:
-            with open(self.save_path, "w") as file:
-                json.dump({"content": {k: v for k, v in self._data.items() if v is not None}}, file)
-        except Exception as e:
-            print(f"Error saving to file: {e}")
-
     @classmethod
-    def _load_from_file(cls, file_name: str) -> None:
+    def _load_from_file(cls, file_name: str) -> Dict[str, Any]:
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                cls._data = data.get("content", {})
+                cls._data = {k: v for k, v in data.get("content", {}).items() if v is not None}
         except Exception as e:
             print(f"Error loading from file: {e}")
+
+    def save_to_file(self):
+        try:
+            with open(self.save_path, "w") as file:
+                json.dump({"content": self._data}, file)
+        except Exception as e:
+            print(f"Error saving to file: {e}")
 
     def save_to_json(self) -> str:
         return json.dumps({k: v for k, v in self.data.items() if v is not None})

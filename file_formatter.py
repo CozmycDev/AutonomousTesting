@@ -2,17 +2,17 @@ from json import load, dump
 import os
 from typing import Optional
 import logging
+import pathlib  # Import for Path class
 
 logger = logging.getLogger(__name__)
 
 class FileFormatter:
-    def _get_or_create_file(self, file_name: str) -> open:
+    def _get_or_create_file(self, file_name: str) -> pathlib.Path:
         try:
-            return open(file_name, "r")
+            return pathlib.Path(file_name)
         except FileNotFoundError as e:
-            with open(file_name, "w") as file:
-                pass
-            return open(file_name)
+            pathlib.Path(file_name).touch()  # Touch to create file
+            return pathlib.Path(file_name)
         except Exception as e:
             logger.error(f"Error creating file {e}")
             raise
@@ -25,7 +25,7 @@ class FileFormatter:
         try:
             with self._get_or_create_file(file_name) as file:
                 data = {"content": content}
-                dump(data, file)
+                dump(data, str(file))
         except Exception as e:
             logger.error(f"Error saving to file: {e}")
 
@@ -45,8 +45,8 @@ class FileFormatter:
             raise ValueError("Content is required")
 
         try:
-            with open(file_name, "w") as file:
+            with self._get_or_create_file(file_name).open("w") as file:
                 data = {"content": content}
-                dump(data, file)
+                dump(data, str(file))
         except Exception as e:
             logger.error(f"Error saving to JSON file: {e}")

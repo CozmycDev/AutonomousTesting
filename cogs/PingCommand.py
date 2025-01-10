@@ -10,7 +10,7 @@ class PingCommand(commands.Cog):
         self.bot = bot
         
     @slash_command(name='ping', description=Option('The string to say', 'The string to display.'), options=[Option("string", "The input string.", True)])
-    async def test_command(self, ctx: discord.ApplicationContext, test_string: str):
+    async def ping(self, ctx: discord.ApplicationContext, test_string: str):
         """Test command that returns the input string."""
         await ctx.defer()
         return f"User said {test_string}"
@@ -30,7 +30,6 @@ class PingController(commands.Cog):
         await ctx.defer()
         return f"User said {ctx.invoked_with[0]}"
 
-def load_cogs(bot: commands.Bot) -> None:
-    from repo.cogs import PingCommand
-    bot.add_cog(PingCommand(bot))
-    bot.tree.sync()  # Ensure the slash command is synced with the Discord API
+
+
+load_cogs = load_cogs  # Use existing function
