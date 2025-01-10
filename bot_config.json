@@ -7,39 +7,40 @@ class File:
         self.database_connection = DatabaseConnection()
         self.api_client = APIClient()
 
-    def update_file(self) -> bool:
-        """Update file content by reading from database and API"""
-        updated_content = self._generate_updated_content()
-        with open("file.txt", "w") as file_object:
-            file_object.write(updated_content)
-        return True
+    class _Updater:
+        def __init__(self, file: 'File'):
+            self.file = file
+        
+        def update_file(self) -> bool:
+            """Update file content by reading from database and API"""
+            updated_content = self._generate_updated_content()
+            with open("file.txt", "w") as file_object:
+                file_object.write(updated_content)
+            return True
 
-    def _generate_updated_content(self) -> str:
-        """Generate updated content by combining database and API data"""
-        database_data = self.database_connection.read_from_database()
-        api_data = self.api_client.get_data_from_api()
-        return f"{database_data} {api_data}"
+        def _generate_updated_content(self) -> str:
+            """Generate updated content by combining database and API data"""
+            database_data = self.database_connection.read_from_database()
+            api_data = self.api_client.get_data_from_api()
+            return f"{database_data} {api_data}"
 
     def get_description(self) -> Optional[str]:
         """Retrieve description, filtering out specific values from database"""
-        description = self._filter_description()
-        return description
-
-    @staticmethod
-    def _filter_description() -> Optional[str]:
-        """Filter description from database data"""
-        database_data = DatabaseConnection().read_from_database()
-        if "description" in database_data and database_data["description"].lower() != "specific_value":
-            return database_data["description"]
+        updated_file_updater = self._Updater(self)
+        description = updated_file_updater.update_file()
+        filtered_description = DatabaseConnection().read_from_database()['description']
+        if 'specific_value' not in filtered_description.lower():
+            return filtered_description
         else:
             return "default_description"
 
-class DatabaseConnection:
-    def read_from_database(self) -> dict:
-        # Logic to read data from database goes here
-        pass
+    def __init_subclass__(cls, **kwargs):
+        cls.updater = cls._Updater(cls)
 
-class APIClient:
-    def get_data_from_api(self) -> str:
-        # Logic to retrieve data from API goes here
-        pass
+from typing import Dict
+
+DatabaseConnection.read_from_database:Dict = {
+    'description':'database_description'
+}
+
+APIClient.get_data_from_api:str= "api_data"

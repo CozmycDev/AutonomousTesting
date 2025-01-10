@@ -3,6 +3,7 @@ import asyncio
 import traceback
 from typing import Optional
 import json
+from pathlib import Path
 
 class Bot:
     def __init__(self):
@@ -28,7 +29,7 @@ class Bot:
     async def __aenter__(self) -> None:
         try:
             self.watcher_config = await self._get_watcher_config()
-            self.watcher = Watcher(bot=self.bot, path='cogs', **self.watcher_config)
+            self.watcher = Watcher(bot=self.bot, path=Path('cogs'), **self.watcher_config)
             await self.watcher.start()
             await self.bot.sync_commands()
         except Exception as e:
@@ -51,8 +52,6 @@ class Bot:
         with open('watcher_config.json') as config_file:
             config_data = json.load(config_file)
         watcher_config = config_data.get('config', {})
-        watcher_config['path'] = 'cogs'
+        watcher_config['path'] = Path('cogs')
         watcher_config['filename_pattern'] = '*.py'
         return watcher_config
-
-    # No changes required in the File section

@@ -9,8 +9,7 @@ class PingCommand(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
-    @slash_command(name='ping', description='Example slash command.', options=Option('The string to say', 'The string to display.')
-                   )
+    @slash_command(name='ping', description=Option('The string to say', 'The string to display.'), options=[Option("string", "The input string.", True)])
     async def test_command(self, ctx: discord.ApplicationContext, test_string: str):
         """Test command that returns the input string."""
         await ctx.defer()
@@ -25,7 +24,7 @@ class PingController(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         
-    @commands.slash_command(name='ping', description='Example slash command.')
+    @commands.slash_command(name='ping', description=Option('The string to say', 'The string to display.'), options=[Option("string", "The input string.", True)])
     async def ping(self, ctx: discord.ApplicationContext):
         """Ping command that returns a greeting."""
         await ctx.defer()

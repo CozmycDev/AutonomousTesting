@@ -19,43 +19,56 @@ class File:
 
         file_type_manager = FileTypeManager()
         file_type = file_type_manager.get_file_type(os.path.splitext(filename)[1])
+
         return cls.from_extension(file_type)
 
     @classmethod
     def from_extension(cls, extension: str) -> 'File':
         if extension == '.json':
-            return cls.from_json()
+            return cls.from_json_data()
         elif extension == '.txt':
             return cls.from_text_file()
 
     @classmethod
-    def from_json(cls) -> 'File':
+    def from_json_data(cls) -> 'File':
+        data = {}
+
         try:
             with open("data.json", "r") as file:
                 data = json.load(file)
-                return cls(name=data.get('name', ''), content=data.get('content', ''))  # Use get() to prevent KeyError
+                # Extract name and content from the JSON data
+                if "name" in data:
+                    name = data["name"]
+                else:
+                    name = ""
+
+                if "content" in data:
+                    content = data["content"]
+                else:
+                    content = None
+
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
+
+        return cls(name=name, content=content)
 
     @classmethod
     def from_text_file(cls) -> 'File':
         try:
             with open("data.txt", "r") as file:
                 content = file.read()
-            return cls(name=pathlib.Path("data.txt").name, content=content)
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
+
+        return cls(name=pathlib.Path("data.txt").name, content=content)
 
     @classmethod
     def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
-        try:
-            existing_content = cls.read_from_file(f"data/{name}.txt")
-        except Exception as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
+        existing_content = cls.read_from_file(f"data/{name}.txt")
 
         if new_content is not None:
             cls.write_to_json(f"data/{name}.txt", new_content)
-        
+
         return cls.from_path(f"data/{name}.txt")
 
 
@@ -69,12 +82,9 @@ class File:
     @classmethod
     def read_from_file(cls, filename: str) -> Optional['File']:
         try:
-            content = cls.read_json(f"data/{filename}")
+            return cls.read_json(f"data/{filename}")
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
-
-        return cls(name=pathlib.Path(filename).name, content=content)
-
 
     @classmethod
     def read_json(cls, filename: str) -> Optional[str]:
@@ -87,7 +97,6 @@ class File:
                     return None
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
-
 
     @classmethod
     def delete_file(cls, name: str) -> None:

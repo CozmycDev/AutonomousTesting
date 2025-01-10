@@ -26,7 +26,7 @@ class File(BaseFileSection):
     def save_to_file(self):
         try:
             with open(self.save_path, "w") as file:
-                json.dump({"content": self.data}, file)
+                json.dump({"content": {k: v for k, v in self._data.items() if v is not None}}, file)
         except Exception as e:
             print(f"Error saving to file: {e}")
 
@@ -40,7 +40,7 @@ class File(BaseFileSection):
             print(f"Error loading from file: {e}")
 
     def save_to_json(self) -> str:
-        return json.dumps(self.data)
+        return json.dumps({k: v for k, v in self.data.items() if v is not None})
 
     @classmethod
     def _validate_file_content(cls, file_name: str, content: str):
