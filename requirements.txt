@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 import json
@@ -9,28 +9,32 @@ import os
 class File:
     name: str
     content: Optional[str] = None
+    file_path: Optional[Path] = None  # New attribute to store the file path
+
 
     @classmethod
     def from_path(cls, filename: str) -> 'File':
         if not Path(filename).exists():
             raise FileNotFoundError(f"File {filename} does not exist")
         
-        return cls.from_extension(Path(filename).suffix[1:])
+        return cls.from_extension(Path(filename).suffix[1:], filename)
+
 
     @classmethod
-    def from_extension(cls, extension: str) -> 'File':
+    def from_extension(cls, extension: str, filename: Optional[str] = None) -> 'File':
         if extension == '.json':
             data = cls._load_json(f"data/{extension}")
             if data is None:
                 raise ValueError(f"Failed to load JSON file")
             
-            return cls(name=Path("data.json").name, content=data.get('content'))
+            return cls(name=Path("data.json").name, content=data.get('content'), filename=filename)
         elif extension == '.txt':
             with open(Path("data.txt"), 'r') as file:
                 content = file.read()
                 name = Path("data.txt").name
             
-            return cls(name=name, content=content)
+            return cls(name=name, content=content, filename=filename)
+
 
     @classmethod
     def _load_json(cls, filename: str) -> Optional[str]:
@@ -41,6 +45,7 @@ class File:
         except Exception as e:
             raise ValueError(f"Failed to load JSON file: {str(e)}")
 
+
     @classmethod
     def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
         original_file = cls._read_from_file(f"data/{name}.txt")
@@ -50,6 +55,7 @@ class File:
 
         return cls.from_path(f"data/{name}.txt")
 
+
     @classmethod
     def _read_from_file(cls, filename: str) -> Optional['File']:
         try:
@@ -57,9 +63,10 @@ class File:
                 if file.read() == '':
                     raise ValueError("Failed to load empty file")
                 
-                return cls.from_extension(Path(filename).suffix[1:])
+                return cls.from_extension(Path(filename).suffix[1:], filename)
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
+
 
     @classmethod
     def write_to_json(cls, filename: str, content: Optional[str] = None) -> 'File':
@@ -71,6 +78,8 @@ class File:
         except Exception as e:
             raise ValueError(f"Failed to write to file: {str(e)}")
 
+
     @classmethod
     def delete_file(cls, name: str) -> None:
         os.remove(f"data/{name}.txt")
+END_FILE

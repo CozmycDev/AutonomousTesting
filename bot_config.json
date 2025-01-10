@@ -31,12 +31,11 @@ class File:
         return updated_description
 
     async def update_file(self) -> bool:
-        """Update file content by reading from database and API"""
         await self._Updater().update_content()
 
     @classmethod
-    async def update_description(cls, self: 'File') -> Optional[str]:
-        db_description = (await self.database_connection.read_from_database())['description']
+    async def update_description(cls, file: 'File') -> Optional[str]:
+        db_description = (await cls.database_connection.read_from_database())['description']
         if 'specific_value' not in db_description.lower():
             return db_description
         else:

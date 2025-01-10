@@ -7,7 +7,7 @@ class File(BaseFileSection):
     def __init__(self, file_name: str, save_path: str, content: str = None):
         self._file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
-        self._data = {}
+        self._data: Dict[str, Any] = {}
         if content:
             self.data = content
 

@@ -13,5 +13,3 @@ class PingCommand(commands.Cog):
         """Test command that returns the input string."""
         await ctx.defer()
         return f"User said {test_string or ''}"
-
-    #

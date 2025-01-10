@@ -23,5 +23,38 @@ class Watcher:
     def stop(self):
         self.bot.remove_listener('on_ready', self.on_ready)
 
+
+class Bot:
+    # ... (rest of the class remains the same)
+     import logging
+logging.basicConfig(level=logging.INFO)
+
+def _create_cog(file_path: Path) -> Cog:
+    with open(str(file_path), 'r') as file_obj:
+        cog_data = file_obj.read()
+    return Cog.from_type(Cog, cog_data)
+
+class Watcher:
+    def __init__(self, bot, path, **config):
+        self.bot = bot
+        self.path = Path(path)
+        self.config = config
+
+    async def start(self):
+        filename_pattern = self.config.get('filename_pattern', [])
+        for file in self.path.glob('cogs/*.py'):
+            if file.is_file():
+                cog_data = await self.import_cog(file)
+                self.bot.add_cog(Cog(cog_data))
+
+    async def import_cog(self, file: Path) -> Cog:
+        with open(str(file), 'r') as file_obj:
+            cog_data = file_obj.read()
+        return _create_cog(file)
+
+    def stop(self):
+        self.bot.remove_listener('on_ready', self.on_ready)
+
+
 class Bot:
     # ... (rest of the class remains the same)
