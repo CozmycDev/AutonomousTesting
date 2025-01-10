@@ -13,9 +13,8 @@ class PingCommand(commands.Cog):
         await ctx.defer()
         return f"User said {test_string or ''}"
 
-    class Commands(commands.Cog):
-        pass
-
 class PingError(Exception):
     """Custom exception for ping errors."""
     pass
+
+#

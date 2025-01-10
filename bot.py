@@ -3,10 +3,10 @@ import asyncio
 from pathlib import Path
 import logging
 from typing import Dict, List
+import json  # NEW FILE:/END_FILE
 
-class Watcher:
-    def __init__(self, bot, path: Path, **config: Dict[str, str]):
-        self.bot = bot
+class File:
+    def __init__(self, path: Path, **config: Dict[str, str]):
         self.path = path
         self.config = config
 
@@ -19,17 +19,19 @@ class Watcher:
 
     async def import_cog(self, file: Path) -> Cog:
         with open(str(file), 'r') as file_obj:
-            cog_data: str = file_obj.read()
+            cog_data: dict = json.load(file_obj)
         return Cog.from_type(Cog, cog_data)
 
-    def stop(self):
-        self.bot.remove_listener('on_ready', self.on_ready)
-
+    @staticmethod
+    def load_config(path: Path):
+        with open(path, 'r') as config_file:
+            config = json.load(config_file)
+        return config
 
 class Bot:
     def __init__(self):
         logging.basicConfig(level=logging.INFO)
-        self.watcher = Watcher(self, Path(__file__).parent, filename_pattern=['cogs/*.py'])
+        self.watcher = File(Path(__file__).parent, filename_pattern=['cogs/*.py'])
 
     async def run(self):
         await self.watcher.start()

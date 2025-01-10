@@ -9,8 +9,7 @@ class File:
 
     class _Updater:
         async def update_content(self, db_data: str, api_data: str) -> bool:
-            updated_content = f"{db_data} {api_data}"
-            return await self._write_to_file(updated_content)
+            return await self._write_to_file(f"{db_data} {api_data}")
 
         async def _write_to_file(self, content: str) -> bool:
             with open("file.txt", "w") as f:
@@ -22,10 +21,10 @@ class File:
             api_data = await self.api_client.get_data_from_api()
             return self.update_content(db_data, api_data)
 
-    class Updater(File, metaclass=type):
+    class Updater(File):
         pass
 
-    class DescriptionUpdater(File, metaclass=type):
+    class DescriptionUpdater(File):
         pass
 
     def get_description(self) -> Optional[str]:

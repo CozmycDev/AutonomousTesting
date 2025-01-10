@@ -15,31 +15,56 @@ class File:
 
     @classmethod
     def from_file(cls, filename: str) -> 'File':
-        return cls(
-            name=Path("data.json").name if Path(filename).suffix == '.json' else Path("data.txt").name,
-            content=None if Path(filename).suffix == '.json' else open(Path("data.txt"), 'r').read(),
-            file_path=Path(filename) if filename.endswith('.json') else None
-        )
+        if Path(filename).suffix == '.json':
+            return cls(
+                name=Path("data.json").name,
+                content=None,
+                file_path=Path(filename)
+            )
+        else:
+            try:
+                with open(Path("data.txt"), 'r') as f:
+                    content = f.read()
+            except Exception as e:
+                raise ValueError(f"Failed to load data.txt: {str(e)}")
+            return cls(
+                name=Path("data.txt").name,
+                content=content,
+                file_path=None
+            )
 
 
     @classmethod
     def from_name(cls, name: str, extension: Optional[str] = None, filename: Optional[str] = None) -> 'File':
-        return cls(
-            name=name,
-            content=None if extension is None or extension == '.txt' else open(f"data/{extension}", 'r').read(),
-            file_path=Path(filename) if filename and filename.endswith(extension) else Path("data.txt")
-        )
+        if filename and filename.endswith(extension):
+            return cls(
+                name=name,
+                content=open(f"data/{extension}", 'r').read(),
+                file_path=Path(filename)
+            )
+        else:
+            try:
+                with open(f"data/{extension or ''}", 'r') as f:
+                    content = f.read()
+            except Exception as e:
+                raise ValueError(f"Failed to load data/{extension or ''}: {str(e)}")
+            return cls(
+                name=name,
+                content=content,
+                file_path=None
+            )
 
 
     @classmethod
     def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
-        original_file = cls._read_from_file(f"data/{name}.txt")
-
-
+        try:
+            with open(f"data/{name}.txt", "r") as f:
+                original_content = f.read()
+        except Exception as e:
+            raise ValueError(f"Failed to load data/{name}.txt: {str(e)}")
         if new_content is not None:
-            cls._write_to_json(f"data/{name}.txt", new_content)
-
-        return original_file
+            cls.write_to_json(f"data/{name}.txt", new_content)
+        return cls.from_file(Path(name).stem)
 
 
     @classmethod
@@ -47,31 +72,28 @@ class File:
         try:
             with open(filename, "r") as file:
                 data = json.load(file)
-                
                 if data is not None and 'content' in data:
                     return cls.from_name(data['name'], data.get('extension'), data.get('filename'))
-                
-                if file.read() == '':
-                    raise ValueError("Failed to load empty file")
-                
-                return cls.from_file(Path(filename).stem)
+                else:
+                    return cls.from_file(Path(filename).stem)
         except Exception as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
 
     @classmethod
     def write_to_json(cls, filename: str, content: Optional[str] = None) -> 'File':
-        data = {'name': Path(filename).name, 'extension': '.json' if content is not None else None, 'filename': filename}
-        
         try:
             with open(filename, "w") as file:
+                data = {'name': Path(filename).name, 'extension': '.json' if content is not None else None, 'filename': filename}
                 json.dump(data, file, indent=4)
-                
-            return cls.from_file(f"{Path(filename).stem}.json")
+            return cls.from_file(Path(filename).stem)
         except Exception as e:
             raise ValueError(f"Failed to write to file: {str(e)}")
 
 
     @classmethod
     def delete_file(cls, name: str) -> None:
-        os.remove(f"data/{name}.txt")
+        try:
+            os.remove(f"data/{name}.txt")
+        except Exception as e:
+            raise ValueError(f"Failed to delete data/{name}.txt: {str(e)}")

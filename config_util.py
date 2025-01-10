@@ -7,7 +7,7 @@ class File(BaseFileSection):
     def __init__(self, file_name: str, save_path: str, content: Dict[str, Any] = None):
         self.file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
-        self.data = content or {}
+        self._data = {}
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -27,9 +27,12 @@ class File(BaseFileSection):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                cls.file_data["data"] = {k: v for k, v in data.get("content", {}).items() if v is not None}
+                cls._load_data(data)
         except Exception as e:
             print(f"Error loading from file: {e}")
+
+    def _load_data(self, data):
+        self._data = {k: v for k, v in data.get("content", {}).items() if v is not None}
 
     def save_to_file(self):
         try:
