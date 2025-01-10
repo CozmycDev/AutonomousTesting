@@ -1,5 +1,6 @@
-import discord
-from discord.commands import slash_command
+load_cogs = load_cogs
+
+from discord import app_commands
 from discord.ext import commands
 
 
@@ -9,8 +10,8 @@ class PingCommand(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @slash_command(name='ping', description="The string to say", options=[Option("string", "The input string.", True)])
-    async def ping(self, ctx: discord.ApplicationContext, test_string: str = None):
+    @app_command(name='ping', description="The string to say", options=[Option("string", "The input string.", True)])
+    async def ping(self, ctx: app_commands.Context, test_string: str = None):
         """Test command that returns the input string."""
         await ctx.defer()
         return f"User said {test_string or ''}"
@@ -24,12 +25,14 @@ class PingController(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.slash_command(name='ping', description="The string to say", options=[Option("string", "The input string.", True)])
-    async def ping(self, ctx: discord.ApplicationContext):
+    @app_command(name='ping', description="The string to say", options=[Option("string", "The input string.", True)])
+    async def ping(self, ctx: app_commands.Context):
         """Ping command that returns a greeting."""
         await ctx.defer()
         return f"User said {ctx.invoked_with[0]}"
 
 
 
-load_cogs = load_cogs  # Use existing function
+def load_cogs():
+    # Existing function for loading cogs
+    pass

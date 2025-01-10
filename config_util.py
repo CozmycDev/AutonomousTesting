@@ -8,7 +8,7 @@ class File(BaseFileSection):
         super().__init__("File")
         self._file_name = file_name
         self.save_path = save_path
-        self._data = {}
+        self.data = {}
 
     @property
     def data(self) -> Dict[str, Any]:
@@ -39,10 +39,10 @@ class File(BaseFileSection):
         except Exception as e:
             print(f"Error saving to file: {e}")
 
-    @staticmethod
-    def validate_file_content(file_name: str, content: str) -> None:
-        File.load_from_file(file_name)
-        if content != File.get_value():
+    @classmethod
+    def validate_file_content(cls, file_name: str, content: str) -> None:
+        cls.load_from_file(file_name)
+        if content != cls.get_value():
             raise ValueError("File content has changed")
 
     @classmethod
@@ -50,8 +50,8 @@ class File(BaseFileSection):
         new_file = cls(save_path, "")
         return new_file
 
-    @staticmethod
-    def get_data(file_name: str) -> Dict[str, Any]:
+    @classmethod
+    def get_data(cls, file_name: str) -> Dict[str, Any]:
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)

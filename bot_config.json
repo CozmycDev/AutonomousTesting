@@ -9,25 +9,25 @@ class File:
 
     class Updater:
         @staticmethod
-        def update_file(self) -> bool:
+        async def update_file(self) -> bool:
             """Update file content by reading from database and API"""
-            updated_content = self._generate_updated_content()
+            updated_content = await self._generate_updated_content()
             with open("file.txt", "w") as f:
                 f.write(updated_content)
             return True
 
         @staticmethod
-        def _generate_updated_content(self) -> str:
+        async def _generate_updated_content(self) -> str:
             """Generate updated content by combining database and API data"""
-            db_data = self.database_connection.read_from_database()
-            api_data = self.api_client.get_data_from_api()
+            db_data = await self.database_connection.read_from_database()
+            api_data = await self.api_client.get_data_from_api()
             return f"{db_data['description']} {api_data}"
 
     class DescriptionUpdater:
         @staticmethod
-        def update_description(self) -> Optional[str]:
+        async def update_description(self) -> Optional[str]:
             """Retrieve description, filtering out specific values from database"""
-            db_description = self.database_connection.read_from_database()['description']
+            db_description = (await self.database_connection.read_from_database())['description']
             if 'specific_value' not in db_description.lower():
                 return db_description
             else:
