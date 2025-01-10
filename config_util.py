@@ -5,14 +5,15 @@ from BaseFileSection import BaseFileSection  # Import from the relevant file
 
 class File(BaseFileSection):
     def __init__(self, file_name: str, save_path: str, content: str = None):
+        self._file_data = {"file_name": file_name, "save_path": save_path}
         super().__init__("File")
-        self._file_name = file_name
-        self.save_path = save_path
-        self.data = {}
+        self._data = {}
+        if content:
+            self.data = content
 
     @property
     def data(self) -> Dict[str, Any]:
-        return {"content": {k: v for k, v in self._data.items() if v is not None}}
+        return {**self._data, **{"content": {k: v for k, v in self._data.items() if v is not None}}}
 
     @data.setter
     def data(self, value: Dict[str, Any]):
@@ -28,14 +29,14 @@ class File(BaseFileSection):
         try:
             with open(file_name, "r") as file:
                 data = json.load(file)
-                cls._data = {k: v for k, v in data.get("content", {}).items() if v is not None}
+                cls._file_data["data"] = {k: v for k, v in data.get("content", {}).items() if v is not None}
         except Exception as e:
             print(f"Error loading from file: {e}")
 
     def save_to_file(self):
         try:
             with open(self.save_path, "w") as file:
-                json.dump({"content": self._data}, file)
+                json.dump({**self._file_data, **{"content": self._data}}, file)
         except Exception as e:
             print(f"Error saving to file: {e}")
 
@@ -47,7 +48,7 @@ class File(BaseFileSection):
 
     @classmethod
     def create_new_file(cls, save_path: str):
-        new_file = cls(save_path, "")
+        new_file = cls(save_path, {})
         return new_file
 
     @classmethod
@@ -69,3 +70,11 @@ class File(BaseFileSection):
         except Exception as e:
             print(f"Error getting file value: {e}")
             return ""
+
+    @classmethod
+    def update_file_content(cls, file_name: str, content: str) -> None:
+        try:
+            with open(file_name, "w") as file:
+                json.dump({"content": content}, file)
+        except Exception as e:
+            print(f"Error updating file content: {e}")

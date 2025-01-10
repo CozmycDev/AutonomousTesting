@@ -1,10 +1,7 @@
-from typing import Optional
-import json
-import os
-import pathlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from file_type_loader import JsonFileTypeLoader, TextFileTypeLoader
+from pathlib import Path
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -17,8 +14,7 @@ class File:
         if not os.path.exists(filename):
             raise FileNotFoundError(f"File {filename} does not exist")
         
-        file_type_manager = FileTypeManager()
-        file_extension = pathlib.Path(filename).suffix[1:]  # Extract file extension
+        file_extension = Path(filename).suffix[1:]  # Extract file extension
 
         return cls.from_extension(file_extension)
 
@@ -29,10 +25,12 @@ class File:
             if data is None:
                 raise ValueError(f"Failed to load JSON file")
             
-            return cls(name=pathlib.Path("data.json").name, content=data.get('content'))
+            return cls(name=Path("data.json").name, content=data.get('content'))
         elif extension == '.txt':
-            content = pathlib.Path("data.txt").read_text()
-            name = pathlib.Path("data.txt").name
+            with open(Path("data.txt"), 'r') as file:
+                content = file.read()
+                name = Path("data.txt").name
+            
             return cls(name=name, content=content)
 
     @classmethod
@@ -46,11 +44,8 @@ class File:
 
     @classmethod
     def update_content(cls, name: str, new_content: Optional[str] = None) -> 'File':
-        try:
-            original_file = cls._read_from_file(f"data/{name}.txt")
-        except ValueError as e:
-            raise ValueError(f"Failed to load file: {str(e)}")
-
+        original_file = cls._read_from_file(f"data/{name}.txt")
+        
         if new_content is not None:
             cls._write_to_json(f"data/{name}.txt", new_content)
 
@@ -59,13 +54,17 @@ class File:
     @classmethod
     def _read_from_file(cls, filename: str) -> Optional['File']:
         try:
-            return cls.read_json(f"data/{filename}")
+            with open(filename, "r") as file:
+                if file.read() == '':
+                    raise ValueError("Failed to load empty file")
+                
+                return cls.from_extension(Path(filename).suffix[1:])
         except ValueError as e:
             raise ValueError(f"Failed to load file: {str(e)}")
 
     @classmethod
     def write_to_json(cls, filename: str, content: Optional[str] = None) -> 'File':
-        data = {'name': pathlib.Path(filename).name, 'content': content}
+        data = {'name': Path(filename).name, 'content': content}
         
         try:
             with open(filename, "w") as file:

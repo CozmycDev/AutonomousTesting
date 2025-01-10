@@ -9,18 +9,19 @@ class Watcher:
         self.config = config
 
     async def start(self):
-        for filename in self.config['filename_pattern'].glob(self.path / 'cogs/*.py'):
+        filename_pattern = self.config.get('filename_pattern', [])
+        for filename in filename_pattern.glob(self.path / 'cogs/*.py'):
             if filename.is_file():
-                cog_data = await import_cog(filename)
+                cog_data = await self.import_cog(filename)
                 self.bot.add_cog(Cog(cog_data))
+
+    async def import_cog(self, filename: str) -> Cog:
+        with open(filename, 'r') as file:
+            cog_data = file.read()
+        return Cog.from_type(Cog, cog_data)
 
     def stop(self):
         self.bot.remove_listener('on_ready', self.on_ready)
 
-async def import_cog(filename: str) -> Cog:
-    with open(filename, 'r') as file:
-        cog_data = file.read()
-    return Cog.from_type(Cog, cog_data)
-
 class Bot:
-    # ... (rest of the class remains the same)
+     # ... (rest of the class remains the same)
